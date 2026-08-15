@@ -136,28 +136,65 @@ export default async function PackagePage({ params, searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-8">
-      <Suspense fallback={<HeaderSkeleton name={name} version={resolved.version} />}>
-        <PackageHeader
-          rootKey={key}
-          name={name}
-          availableVersions={resolved.available}
-          current={base}
-        />
+      {/*
+        Every Suspense boundary is keyed on the inputs its panel depends on.
+        Without a key, React treats a navigation to the same route with different
+        search parameters as an update to the existing boundary, and an update
+        deliberately keeps the previous content on screen until the replacement
+        is ready rather than flashing a fallback. That is usually the behaviour
+        you want, but here the production/dev switch changes a query that takes
+        several seconds on the free tier, so the page sat completely still and
+        looked broken.
+
+        Keying forces a remount, so the skeleton appears the instant the link is
+        clicked and the panel visibly reloads. The cost is losing the old content
+        during the swap, which is the correct trade when the numbers on screen no
+        longer match the filter the user just chose.
+      */}
+      {/*
+        Identity and controls render synchronously, outside every Suspense
+        boundary. They depend only on values the page already has, and putting
+        them inside the boundary meant the scope toggle vanished behind a
+        skeleton the moment it was clicked - the control disappearing is a worse
+        experience than the stale numbers it was meant to fix.
+      */}
+      <PageIdentity
+        name={name}
+        version={resolved.version}
+        availableVersions={resolved.available}
+        isRoot={record.rootVersion !== null}
+        current={base}
+      />
+
+      <Suspense
+        key={`header-${key}-${scope}`}
+        fallback={<HeaderSkeleton />}
+      >
+        <PackageHeader rootKey={key} current={base} />
       </Suspense>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <div className="space-y-5">
-          <Suspense fallback={<PanelSkeleton title="Dependency graph" rows={6} />}>
+          <Suspense
+            key={`graph-${key}-${depth}`}
+            fallback={<PanelSkeleton title="The tree itself" rows={6} />}
+          >
             <GraphPanel rootKey={key} depth={depth} current={base} />
           </Suspense>
 
-          <Suspense fallback={<PanelSkeleton title="Reachable advisories" rows={5} />}>
+          <Suspense
+            key={`vulns-${key}-${scope}`}
+            fallback={<PanelSkeleton title="Reachable advisories" rows={5} />}
+          >
             <VulnerabilitySection rootKey={key} scope={scope} />
           </Suspense>
         </div>
 
         <div className="space-y-5">
-          <Suspense fallback={<PanelSkeleton title="Fix this first" rows={4} />}>
+          <Suspense
+            key={`choke-${key}-${scope}`}
+            fallback={<PanelSkeleton title="Fix this first" rows={4} />}
+          >
             <ChokepointSection rootKey={key} scope={scope} />
           </Suspense>
 
@@ -205,15 +242,64 @@ function hrefWith(current: CurrentView, patch: Partial<CurrentView>): string {
   return `${packageHref(next.name)}?${search.toString()}`;
 }
 
+/**
+ * Breadcrumb, package identity, and the two filters.
+ *
+ * Rendered synchronously by the page. Everything here is derived from the URL
+ * and from the version list the page already resolved, so none of it needs to
+ * wait on the overview query - which means the scope toggle stays put, and
+ * visibly updates its own active state, while the panels beneath it reload.
+ */
+function PageIdentity({
+  name,
+  version,
+  availableVersions,
+  isRoot,
+  current,
+}: {
+  name: string;
+  version: string;
+  availableVersions: string[];
+  isRoot: boolean;
+  current: CurrentView;
+}) {
+  return (
+    <div>
+      <nav className="mb-3 flex items-center gap-2 text-[12.5px] text-[var(--color-ink-faint)]">
+        <Link href="/" className="transition-colors hover:text-[var(--color-ink-muted)]">
+          Explore
+        </Link>
+        <span aria-hidden>/</span>
+        <span className="font-mono text-[var(--color-ink-muted)]">{name}</span>
+      </nav>
+
+      <div className="flex flex-wrap items-start justify-between gap-5">
+        <div className="flex flex-wrap items-baseline gap-3">
+          <h1 className="font-mono text-2xl font-semibold tracking-tight">{name}</h1>
+          <span className="font-mono text-lg text-[var(--color-ink-muted)]">{version}</span>
+          {isRoot && (
+            <Badge className="border-[color-mix(in_oklab,var(--color-accent)_30%,transparent)] bg-[var(--color-accent-ghost)] text-[var(--color-accent)]">
+              seeded root
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex shrink-0 flex-col items-end gap-3">
+          <ScopeToggle current={current} />
+          {availableVersions.length > 1 && (
+            <VersionPicker current={current} versions={availableVersions} active={version} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 async function PackageHeader({
   rootKey,
-  name,
-  availableVersions,
   current,
 }: {
   rootKey: string;
-  name: string;
-  availableVersions: string[];
   current: CurrentView;
 }) {
   let overview;
@@ -248,31 +334,11 @@ async function PackageHeader({
     overview.latestVersion !== null && overview.latestVersion !== overview.version;
 
   return (
-    <header>
-      <nav className="mb-3 flex items-center gap-2 text-[12.5px] text-[var(--color-ink-faint)]">
-        <Link href="/" className="transition-colors hover:text-[var(--color-ink-muted)]">
-          Explore
-        </Link>
-        <span aria-hidden>/</span>
-        <span className="font-mono text-[var(--color-ink-muted)]">{name}</span>
-      </nav>
-
+    <header className="mt-2">
       <div className="flex flex-wrap items-start justify-between gap-5">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-baseline gap-3">
-            <h1 className="font-mono text-2xl font-semibold tracking-tight">{name}</h1>
-            <span className="font-mono text-lg text-[var(--color-ink-muted)]">
-              {overview.version}
-            </span>
-            {overview.isRoot && (
-              <Badge className="border-[color-mix(in_oklab,var(--color-accent)_30%,transparent)] bg-[var(--color-accent-ghost)] text-[var(--color-accent)]">
-                seeded root
-              </Badge>
-            )}
-          </div>
-
           {overview.description !== null && (
-            <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-ink-muted)]">
+            <p className="max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-ink-muted)]">
               {overview.description}
             </p>
           )}
@@ -316,16 +382,6 @@ async function PackageHeader({
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-3">
-          <ScopeToggle current={current} />
-          {availableVersions.length > 1 && (
-            <VersionPicker
-              current={current}
-              versions={availableVersions}
-              active={overview.version}
-            />
-          )}
-        </div>
       </div>
 
       <div className="surface-card mt-5 grid grid-cols-2 divide-[var(--color-line)] sm:grid-cols-3 lg:grid-cols-6 lg:divide-x">
@@ -448,14 +504,10 @@ function VersionPicker({
   );
 }
 
-function HeaderSkeleton({ name, version }: { name: string; version: string }) {
+function HeaderSkeleton() {
   return (
-    <div aria-busy="true">
-      <div className="flex items-baseline gap-3">
-        <h1 className="font-mono text-2xl font-semibold tracking-tight">{name}</h1>
-        <span className="font-mono text-lg text-[var(--color-ink-muted)]">{version}</span>
-      </div>
-      <div className="shimmer mt-3 h-4 w-96 rounded" />
+    <div aria-busy="true" className="mt-4">
+      <div className="shimmer h-4 w-96 rounded" />
       <div className="surface-card mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
         {Array.from({ length: 6 }, (_, index) => (
           <div key={index} className="px-5 py-4">
@@ -464,6 +516,7 @@ function HeaderSkeleton({ name, version }: { name: string; version: string }) {
           </div>
         ))}
       </div>
+      <span className="sr-only">Loading package summary</span>
     </div>
   );
 }
