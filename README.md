@@ -12,7 +12,7 @@ Built on [CognoDB](https://console.cognodb.com), openCypher over Bolt, driven by
 | **Screen recording** | **https://www.loom.com/share/3c676798e4d64778943ac6a5b328e215** (3 min) |
 | **Stack** | Next.js 15 (App Router), TypeScript, Tailwind CSS 4, neo4j-driver 5, CognoDB |
 | **Data** | npm registry (dependency graph) + [OSV.dev](https://osv.dev) (advisories) |
-| **Graph size** | 1,811 packages, 3,025 resolved versions, 6,257 nodes, 20,970 relationships |
+| **Graph size** | 2,400 packages, 4,028 resolved versions, 8,191 nodes, 28,042 relationships |
 
 > The demo runs against a live CognoDB free-tier instance in `us-east4`, with the
 > Vercel functions co-located in `iad1`. Every panel is a real Cypher query - no
@@ -343,10 +343,11 @@ This applies the schema, crawls the npm registry from ~30 root packages, resolve
 
 ```
 1 | Schema              + 5 constraints, 5 indexes
-2 | Crawling            + 1,809 packages | 3,023 versions | 6,604 edges
-3 | Download counts     + 1,019 of 1,809 packages have counts
-4 | Matching against OSV+ 135 vulnerable versions | 243 advisories
-5 | Advisory detail     + 243 advisories retrieved
+2 | Crawling            + 2,400 packages | 4,028 versions | 9,197 edges
+3 | Download counts     + 1,300 of 2,400 packages have counts
+4 | Matching against OSV+ 200 vulnerable versions | 299 advisories
+5 | Advisory detail     + 299 advisories retrieved
+6 | Rollups             + 39 root packages summarised
 6 | Loading             + 6,271 nodes | 20,905 relationships
 ```
 
@@ -544,7 +545,7 @@ It fails on zero rows where rows are expected - an empty table is the failure mo
 
 Stated plainly, because a security tool that overstates its coverage is worse than none:
 
-- **This is a seeded slice of npm, not all of it.** ~1,800 packages crawled outward from ~30 roots. Plenty of real packages are legitimately absent, and the 404 page says so.
+- **This is a seeded slice of npm, not all of it.** ~2,400 packages crawled outward from 39 roots. Plenty of real packages are legitimately absent, and the 404 page says so rather than pretending otherwise. The roots were chosen partly by testing what people actually type into the search box.
 - **Resolution assumes no lockfile.** Results describe what a fresh `npm install` would produce today, not what any particular project has pinned. A real audit tool would read `package-lock.json`.
 - **Advisory data is a point-in-time snapshot** taken when the graph was seeded. Re-run `npm run db:seed` to refresh.
 - **Several roots are pinned to old versions on purpose** - `express@4.17.1`, `axios@0.21.0`, `lodash@4.17.15`. If everything resolved to `latest`, the vulnerability views would render mostly empty, because maintainers do their job. Pinned versions are labelled as such throughout the UI with the reason.

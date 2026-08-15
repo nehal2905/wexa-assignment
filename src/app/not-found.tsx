@@ -21,7 +21,7 @@ export default function NotFound() {
       </h1>
 
       <p className="mx-auto mt-3 max-w-md text-[13.5px] leading-relaxed text-[var(--color-ink-muted)]">
-        Understory holds a seeded slice of the npm registry - roughly eighteen hundred
+        Understory holds a seeded slice of the npm registry - roughly two and a half thousand
         packages crawled outward from a set of well-known projects, not all two million.
         Plenty of perfectly real packages are legitimately absent.
       </p>
