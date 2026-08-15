@@ -90,13 +90,6 @@ export interface MaintainerNode {
 
 export type Severity = "CRITICAL" | "HIGH" | "MODERATE" | "LOW" | "UNKNOWN";
 
-export const SEVERITY_ORDER: Record<Severity, number> = {
-  CRITICAL: 4,
-  HIGH: 3,
-  MODERATE: 2,
-  LOW: 1,
-  UNKNOWN: 0,
-};
 
 export interface VulnerabilityNode {
   /** OSV identifier, usually a GHSA id. Unique. */

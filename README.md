@@ -31,8 +31,9 @@ Built on [CognoDB](https://console.cognodb.com), openCypher over Bolt, driven by
 6. [Running it yourself](#running-it-yourself)
 7. [Architecture](#architecture)
 8. [Correctness decisions](#correctness-decisions)
-9. [Limitations](#limitations)
-10. [Command reference](#command-reference)
+9. [Targeting the free tier](#targeting-the-free-tier) — what broke moving from local Neo4j to CognoDB
+10. [Limitations](#limitations)
+11. [Command reference](#command-reference)
 
 ---
 
@@ -42,7 +43,7 @@ A modern npm project has a handful of direct dependencies and several hundred tr
 
 1. **Can my application actually reach it?** — an advisory in a package that only your test runner installs is not the same problem as one in your HTTP router.
 2. **Through what chain?** — you cannot fix `handlebars` if nothing in your `package.json` mentions it. You need the intermediate package that pulled it in.
-3. **If I can only fix one thing, which?** — with eleven reachable advisories and an afternoon, which single upgrade removes the most risk?
+3. **If I can only fix one thing, which?** — with thirteen reachable advisories and an afternoon, which single upgrade removes the most risk?
 
 `npm audit` answers the first question partially and the other two not at all. All three are questions about **paths through a graph**, which is what this application is built to answer.
 
@@ -64,12 +65,14 @@ Consider the flagship query — *which advisories can `express@4.17.1` reach, an
 ```cypher
 MATCH (root:Version { key: $rootKey })
 MATCH (vuln:Vulnerability)-[affects:AFFECTS]->(target:Version)
-MATCH path = shortestPath((root)-[:DEPENDS_ON*0..8]->(target))
+MATCH path = shortestPath((root)-[:DEPENDS_ON*1..8]->(target))
 RETURN vuln.id, length(path) AS depth,
        [node IN nodes(path) | node.key] AS chain
 ```
 
-Four lines. The variable-length pattern `*0..8` handles the unknown depth, `shortestPath` runs a bidirectional breadth-first search because both endpoints are bound, and `nodes(path)` hands back the route as a first-class value.
+Four lines. The variable-length pattern `*1..8` handles the unknown depth, `shortestPath` runs a bidirectional breadth-first search because both endpoints are bound, and `nodes(path)` hands back the route as a first-class value.
+
+(The shipped query is a little longer — it also has to cover the case where the audited package is *itself* the vulnerable one. See [Targeting the free tier](#targeting-the-free-tier) for why that needs saying out loud.)
 
 **The same thing in SQL** needs a recursive CTE that:
 
@@ -111,7 +114,7 @@ That is the *simple* one. Three more queries in this application get worse:
 
 There is also a **modelling** advantage, not just a query one. Because the graph stores *resolved versions* as first-class nodes (see below), "this package is installed at three different versions at once" is a grouping over a traversal result. A schema that stored declared ranges could not answer it at all without re-running semver resolution at query time.
 
-**Where a graph does not help, this project says so.** Of the 16 queries in the catalog, 12 make a specific claim about being better as a traversal. The other four — package search, version lookup, label counts — are ordinary indexed reads, and the `/queries` page labels them as such. Claiming a graph advantage for a `WHERE name CONTAINS $term` would be dishonest.
+**Where a graph does not help, this project says so.** Of the 16 queries in the catalog, 13 make a specific claim about being better as a traversal. The other three — package search, version lookup, and label counts — are ordinary indexed reads, and the `/queries` page labels them as such rather than dressing them up. Claiming a graph advantage for `WHERE name CONTAINS $term` would be dishonest.
 
 ---
 
@@ -170,7 +173,7 @@ The flagship. For a given version, every advisory reachable within eight hops, w
 MATCH (root:Version { key: $rootKey })
 MATCH (vuln:Vulnerability)-[affects:AFFECTS]->(target:Version)
 WHERE vuln.severity IN $severities
-MATCH path = shortestPath((root)-[:DEPENDS_ON*0..8]->(target))
+MATCH path = shortestPath((root)-[:DEPENDS_ON*1..8]->(target))
 WHERE ALL(hop IN relationships(path) WHERE hop.scope <> 'dev')
 RETURN vuln.id, vuln.severity, vuln.cvssScore, affects.fixedIn,
        length(path) AS depth,
@@ -427,13 +430,13 @@ Three places where the obvious implementation would have been wrong:
 **Production scope is a traversal constraint, not a filter.** `express@4.17.1` reaches a critical RCE in `handlebars` — but only through `hbs`, a *devDependency* used to run express's own tests. It never reaches production. Reporting that as "your app is vulnerable to RCE" would be false; hiding it entirely would also be wrong, since a compromised dev dependency still runs in CI. So both views exist, and the production one constrains the traversal itself:
 
 ```cypher
-MATCH path = shortestPath((root)-[:DEPENDS_ON*0..8]->(target))
+MATCH path = shortestPath((root)-[:DEPENDS_ON*1..8]->(target))
 WHERE ALL(hop IN relationships(path) WHERE hop.scope <> 'dev')
 ```
 
 Filtering *after* `shortestPath` would have been a false negative generator: it returns *the* shortest route, so a package whose shortest route happens to run through a dev edge would be dropped even when a longer production route exists. `scripts/verify-queries.ts` asserts this invariant on every run.
 
-For `express@4.17.1` the difference is **13 production paths versus 55 total**.
+For `express@4.17.1` the difference is **13 production paths versus 57 total**.
 
 **Every number on a page uses the same scope.** The header stat, the chokepoint panel and the advisory list all re-run under the active scope. A headline of "52 advisories" above a list of eleven is the kind of internal contradiction that makes a reader stop believing any number on the page.
 

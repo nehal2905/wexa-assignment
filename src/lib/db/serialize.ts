@@ -84,10 +84,6 @@ export function intToNumber(value: unknown): number {
   return asInteger.toNumber();
 }
 
-/** `intToNumber` for columns that are legitimately nullable. */
-export function optionalNumber(value: unknown): number | null {
-  return value === null || value === undefined ? null : intToNumber(value);
-}
 
 export function toPlainNode(node: Neo4jNode): PlainNode {
   return {

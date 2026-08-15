@@ -205,8 +205,3 @@ export function tryGetEnv():
   }
 }
 
-/** Test seam — clears the memoised value. */
-export function resetEnvCache(): void {
-  cached = null;
-  envFilesLoaded = false;
-}

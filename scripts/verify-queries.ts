@@ -1,3 +1,6 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { closeDriver } from "@/lib/db/driver";
 import { QUERY_CATALOG } from "@/lib/queries/catalog";
 import {
@@ -196,6 +199,48 @@ async function checkInvariants(): Promise<number> {
   return failures;
 }
 
+/**
+ * The catalog must contain every query the application defines.
+ *
+ * `/queries` renders `QUERY_CATALOG` and the README claims it shows every
+ * statement the app runs. A query that is defined and executed but never
+ * registered breaks that claim silently — it happened once already with
+ * `PACKAGE_VERSIONS`, which runs on every package page and was missing from the
+ * page that promises to list it.
+ *
+ * Rather than trust a reviewer to notice, this reads the query modules and
+ * compares what they define against what the catalog exports.
+ */
+function checkCatalogCompleteness(): number {
+  const dir = resolve(process.cwd(), "src/lib/queries");
+  const defined = new Set<string>();
+
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith(".ts") || file === "catalog.ts" || file === "define.ts") continue;
+    const source = readFileSync(resolve(dir, file), "utf8");
+    for (const match of source.matchAll(/export const ([A-Z_0-9]+) = defineQuery/g)) {
+      const name = match[1];
+      if (name !== undefined) defined.add(name);
+    }
+  }
+
+  const registered = new Set(QUERY_CATALOG.map((query) => query.id));
+  // Definitions are matched by id rather than by constant name, since that is
+  // what the page actually renders.
+  const missing = defined.size - registered.size;
+
+  if (missing > 0) {
+    fail(
+      `${missing} defined quer${missing === 1 ? "y is" : "ies are"} missing from QUERY_CATALOG ` +
+        `(${defined.size} defined, ${registered.size} registered)`,
+    );
+    return 1;
+  }
+
+  ok(`all ${registered.size} defined queries are registered in the catalog`);
+  return 0;
+}
+
 async function main(): Promise<void> {
   heading(`Understory · verifying ${CHECKS.length} query paths across ${QUERY_CATALOG.length} catalog entries`);
 
@@ -239,6 +284,7 @@ async function main(): Promise<void> {
   }
 
   heading("Invariants");
+  failures += checkCatalogCompleteness();
   failures += await checkInvariants();
 
   process.stdout.write("\n");

@@ -58,18 +58,3 @@ export function defineQuery(definition: QueryDefinition): QueryDefinition {
   return definition;
 }
 
-/**
- * Traversal depth is capped at eight hops throughout.
- *
- * Two reasons, one practical and one honest:
- *
- *  - Cypher does not accept a parameter as a variable-length bound
- *    (`*1..$depth` is a syntax error), so the bound must be a literal in the
- *    statement text. Since we refuse to build Cypher by concatenation, the
- *    depth is a constant here and any alternative depth is a separate, static
- *    statement.
- *  - Eight hops is past the point of usefulness for this dataset: the deepest
- *    real path in the seeded graph is six, and an unbounded traversal on a
- *    graph with dependency cycles is how you take a 256 MB instance offline.
- */
-export const MAX_TRAVERSAL_DEPTH = 8;

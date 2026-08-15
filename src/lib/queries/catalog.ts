@@ -3,6 +3,7 @@ import type { QueryDefinition, QueryGroup } from "./define";
 import {
   GRAPH_STATISTICS,
   LIST_ROOT_PACKAGES,
+  PACKAGE_VERSIONS,
   SEARCH_PACKAGES,
 } from "./discovery";
 import { UPGRADE_CHOKEPOINTS, VULNERABILITY_PATHS } from "./risk";
@@ -31,6 +32,7 @@ export const QUERY_CATALOG: readonly QueryDefinition[] = [
   // Discovery
   SEARCH_PACKAGES,
   LIST_ROOT_PACKAGES,
+  PACKAGE_VERSIONS,
   GRAPH_STATISTICS,
 
   // Dependency tree
