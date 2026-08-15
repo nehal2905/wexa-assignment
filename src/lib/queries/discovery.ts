@@ -18,7 +18,7 @@ export const SEARCH_PACKAGES = defineQuery({
   title: "Search packages by name",
   question: "Which packages in the graph match what I'm typing?",
   whyGraph: null, // An index scan. A relational database would do this identically.
-  traversal: "0 hops — a single indexed node scan",
+  traversal: "0 hops - a single indexed node scan",
   parameters: [
     { name: "term", description: "Lowercased search text", example: "expr" },
     { name: "limit", description: "Maximum rows to return", example: "12" },
@@ -33,7 +33,7 @@ export const SEARCH_PACKAGES = defineQuery({
            p.latestVersion   AS latestVersion,
            p.weeklyDownloads AS weeklyDownloads
     ORDER BY
-      // Exact match first, then prefix matches, then everything else —
+      // Exact match first, then prefix matches, then everything else -
       // within each tier, the most-downloaded package wins.
       CASE
         WHEN p.nameLower = $term            THEN 0
@@ -88,12 +88,12 @@ export const LIST_ROOT_PACKAGES = defineQuery({
   question:
     "Which packages can I explore, and how much of a problem does each one have?",
   whyGraph: null, // A property read. The traversal behind these numbers happened at seed time.
-  traversal: "0 hops — reads seed-time rollups, see the note below",
+  traversal: "0 hops - reads seed-time rollups, see the note below",
   parameters: [],
   cypher: cypher`
     // Deliberately not a traversal.
     //
-    // These counts ARE the result of a transitive closure — one per card — but
+    // These counts ARE the result of a transitive closure - one per card - but
     // computing thirty-one of them on every page load does not fit inside the
     // CognoDB free tier's query deadline. So the closure is computed once at
     // seed time by breadth-first search over the crawl result, using exactly the
@@ -101,7 +101,7 @@ export const LIST_ROOT_PACKAGES = defineQuery({
     //
     // The index page reads rollups; every detail page it links to runs the real
     // traversal. That division is the normal shape of this problem, not a
-    // shortcut — and it is stated plainly on the /queries page rather than being
+    // shortcut - and it is stated plainly on the /queries page rather than being
     // dressed up as something it is not.
     MATCH (p:Package)
     WHERE p.isRoot = true AND p.rootVersion IS NOT NULL
@@ -170,7 +170,7 @@ export const PACKAGE_VERSIONS = defineQuery({
   id: "package-versions",
   group: "Discovery",
   title: "Which versions of this package are in the graph",
-  question: "This package appears more than once — which copies are actually here?",
+  question: "This package appears more than once - which copies are actually here?",
   whyGraph:
     "Not a graph query in itself, but it exists *because* of one: the crawl resolves " +
     "every declared range independently, so a single package legitimately lands in " +
@@ -225,7 +225,7 @@ export const GRAPH_STATISTICS = defineQuery({
   title: "Count what is in the graph",
   question: "How big is this dataset?",
   whyGraph: null,
-  traversal: "0 hops — label and relationship-type counts",
+  traversal: "0 hops - label and relationship-type counts",
   parameters: [],
   cypher: cypher`
     MATCH (p:Package)          WITH count(p) AS packages

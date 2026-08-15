@@ -28,14 +28,14 @@ import { parseVersionKey } from "@/lib/graph/model";
  *
  * Six phases, each independently observable:
  *
- *   1. schema     — constraints and indexes (idempotent)
- *   2. crawl      — walk the dependency tree, resolving every range
- *   3. downloads  — weekly download counts for weighting
- *   4. advisories — ask OSV which resolved versions are vulnerable
- *   5. details    — fetch each advisory
- *   6. load       — batched writes into the graph
+ *   1. schema     - constraints and indexes (idempotent)
+ *   2. crawl      - walk the dependency tree, resolving every range
+ *   3. downloads  - weekly download counts for weighting
+ *   4. advisories - ask OSV which resolved versions are vulnerable
+ *   5. details    - fetch each advisory
+ *   6. load       - batched writes into the graph
  *
- * Phases 2–5 are cached to disk, so a re-run after a failed load takes seconds
+ * Phases 2-5 are cached to disk, so a re-run after a failed load takes seconds
  * rather than minutes.
  */
 
@@ -66,10 +66,10 @@ async function main(): Promise<void> {
   const config = readConfig();
   const env = getEnv();
 
-  heading("Understory · seed");
+  heading("Understory | seed");
   table([
     ["target", `${env.displayHost} (${env.neo4jDatabase})`],
-    ["encrypted", env.isSecure ? "yes" : "no — local development"],
+    ["encrypted", env.isSecure ? "yes" : "no - local development"],
     ["max depth", config.maxDepth],
     ["package budget", formatNumber(config.maxPackages)],
     ["concurrency", config.concurrency],
@@ -77,12 +77,12 @@ async function main(): Promise<void> {
 
   /* --- 1. Schema --------------------------------------------------------- */
 
-  heading("1 · Schema");
+  heading("1 | Schema");
   await applySchema({ quiet: false });
 
   /* --- 2. Crawl ---------------------------------------------------------- */
 
-  heading("2 · Crawling the dependency tree");
+  heading("2 | Crawling the dependency tree");
   const crawlResult = await crawl({
     maxDepth: config.maxDepth,
     maxPackages: config.maxPackages,
@@ -92,8 +92,8 @@ async function main(): Promise<void> {
 
   const { stats } = crawlResult;
   ok(
-    `${formatNumber(crawlResult.packages.size)} packages · ` +
-      `${formatNumber(crawlResult.versions.size)} versions · ` +
+    `${formatNumber(crawlResult.packages.size)} packages | ` +
+      `${formatNumber(crawlResult.versions.size)} versions | ` +
       `${formatNumber(crawlResult.dependsOn.length)} dependency edges`,
   );
 
@@ -115,7 +115,7 @@ async function main(): Promise<void> {
 
   /* --- 3. Download counts ------------------------------------------------ */
 
-  heading("3 · Weekly download counts");
+  heading("3 | Weekly download counts");
   const packageNames = [...crawlResult.packages.keys()];
   const downloads = await fetchWeeklyDownloads(packageNames, config.concurrency);
   for (const [name, record] of crawlResult.packages) {
@@ -125,7 +125,7 @@ async function main(): Promise<void> {
 
   /* --- 4. Advisory matching ---------------------------------------------- */
 
-  heading("4 · Matching versions against OSV advisories");
+  heading("4 | Matching versions against OSV advisories");
   const versionRefs = [...crawlResult.versions.values()].map((version) => ({
     name: version.packageName,
     version: version.version,
@@ -134,7 +134,7 @@ async function main(): Promise<void> {
   const idsByVersion = await findVulnerabilityIds(
     versionRefs,
     config.concurrency,
-    (done, total) => progress(`querying OSV… batch ${done}/${total}`),
+    (done, total) => progress(`querying OSV... batch ${done}/${total}`),
   );
   endProgress();
 
@@ -146,9 +146,9 @@ async function main(): Promise<void> {
 
   /* --- 5. Advisory detail ------------------------------------------------ */
 
-  heading("5 · Fetching advisory detail");
+  heading("5 | Fetching advisory detail");
   const advisories = await fetchAdvisories(uniqueIds, config.concurrency, (done, total) =>
-    progress(`fetching advisories… ${done}/${total}`),
+    progress(`fetching advisories... ${done}/${total}`),
   );
   endProgress();
   ok(`${formatNumber(advisories.size)} advisories retrieved`);
@@ -179,7 +179,7 @@ async function main(): Promise<void> {
 
   /* --- 6. Rollups -------------------------------------------------------- */
 
-  heading("6 · Rolling up landing-page summaries");
+  heading("6 | Rolling up landing-page summaries");
   computeRootRollups(crawlResult, {
     byVersion: idsByVersion,
     severityById: new Map(
@@ -193,7 +193,7 @@ async function main(): Promise<void> {
 
   /* --- 7. Load ----------------------------------------------------------- */
 
-  heading("7 · Loading into the graph");
+  heading("7 | Loading into the graph");
   if (config.wipe) {
     warn("--wipe was passed; run `npm run db:reset` first if you want a clean graph.");
   }
@@ -221,7 +221,7 @@ async function main(): Promise<void> {
       })),
       affects,
     },
-    ({ step: name, done, total }) => progress(`${name}… ${formatNumber(done)}/${formatNumber(total)}`),
+    ({ step: name, done, total }) => progress(`${name}... ${formatNumber(done)}/${formatNumber(total)}`),
   );
   endProgress();
 
@@ -233,7 +233,7 @@ async function main(): Promise<void> {
     ["total time", formatDuration(Date.now() - startedAt)],
   ]);
   process.stdout.write(
-    `\n  ${style.dim("Next:")} npm run dev  ${style.dim("→")}  http://localhost:3000\n\n`,
+    `\n  ${style.dim("Next:")} npm run dev  ${style.dim("->")}  http://localhost:3000\n\n`,
   );
 }
 

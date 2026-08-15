@@ -60,7 +60,7 @@ export function ChokepointPanel({
     >
       {rows.length === 0 ? (
         <EmptyState
-          icon="✓"
+          icon="+"
           title="Nothing to fix here"
           description={
             scope === "production"
@@ -84,7 +84,7 @@ export function ChokepointPanel({
                 <strong className="font-semibold text-[var(--color-ink)]">
                   {top.vulnerabilityCount} advisor{top.vulnerabilityCount === 1 ? "y" : "ies"}
                 </strong>
-                {rows.length > 1 ? " — more than any other single change." : "."}
+                {rows.length > 1 ? " - more than any other single change." : "."}
               </p>
             </div>
           )}
@@ -160,15 +160,15 @@ export function VulnerabilityPanel({
   return (
     <Panel
       title="Reachable advisories"
-      description="Not a list of packages with CVEs — a list of routes. Each row is the actual chain of dependencies connecting this package to something with a published advisory."
+      description="Not a list of packages with CVEs - a list of routes. Each row is the actual chain of dependencies connecting this package to something with a published advisory."
     >
       {rows.length === 0 ? (
         <EmptyState
-          icon="✓"
+          icon="+"
           title={scope === "production" ? "Nothing reachable in production" : "Nothing reachable"}
           description={
             scope === "production"
-              ? "No path exists from this package to a known advisory through dependencies that ship. Switching to “including dev” may still surface routes through build and test tooling."
+              ? "No path exists from this package to a known advisory through dependencies that ship. Switching to 'including dev' may still surface routes through build and test tooling."
               : "No path of eight hops or fewer connects this package to any advisory in the dataset."
           }
         />
@@ -246,8 +246,8 @@ export function VulnerabilityPanel({
  * The path itself, rendered as a chain.
  *
  * This is the single most important thing on the page: it is the difference
- * between "handlebars has an RCE" (true but useless — you never installed
- * handlebars) and "your app → hbs → handlebars" (actionable, and it tells you
+ * between "handlebars has an RCE" (true but useless - you never installed
+ * handlebars) and "your app -> hbs -> handlebars" (actionable, and it tells you
  * which package to actually go and change).
  */
 function PathTrail({
@@ -286,7 +286,7 @@ function PathTrail({
                     : undefined
                 }
               >
-                {incomingScope === "dev" ? "⇢" : "→"}
+                {incomingScope === "dev" ? "-->" : "->"}
               </span>
             )}
 
@@ -337,7 +337,7 @@ export function MaintainerPanel({
     >
       {reach.length === 0 ? (
         <EmptyState
-          icon="○"
+          icon="o"
           title="No maintainer data"
           description="The registry did not list maintainers for the packages in this tree."
         />
@@ -401,7 +401,7 @@ export function MaintainerPanel({
           <div className="mt-2.5 flex flex-wrap gap-1.5">
             {busFactor.slice(0, 12).map((row) => (
               <Link key={row.packageName} href={packageHref(row.packageName)}>
-                <Badge title={`maintained solely by ${row.maintainer} · ${compactNumber(row.weeklyDownloads)} downloads/week`}>
+                <Badge title={`maintained solely by ${row.maintainer} | ${compactNumber(row.weeklyDownloads)} downloads/week`}>
                   {row.packageName}
                 </Badge>
               </Link>
@@ -435,7 +435,7 @@ export function LicensePanel({ rows, meta }: { rows: LicenseExposure[]; meta: Qu
     >
       {rows.length === 0 ? (
         <EmptyState
-          icon="○"
+          icon="o"
           title="No licence data"
           description="None of the packages in this tree declared a licence the crawler could read."
         />
@@ -445,7 +445,7 @@ export function LicensePanel({ rows, meta }: { rows: LicenseExposure[]; meta: Qu
             <div className="border-b border-[var(--color-line)] bg-[var(--color-high-ghost)]/30 px-5 py-3.5">
               <p className="text-[13px] leading-relaxed text-[var(--color-ink-muted)]">
                 {notable.length} licence{notable.length === 1 ? "" : "s"} in this tree carry
-                obligations beyond attribution — the shallowest sits{" "}
+                obligations beyond attribution - the shallowest sits{" "}
                 <strong className="font-semibold text-[var(--color-ink)]">
                   {notable[0]?.shallowestDepth === 0
                     ? "on this package itself"
@@ -510,9 +510,9 @@ export function DuplicatePanel({
     >
       {rows.length === 0 ? (
         <EmptyState
-          icon="✓"
+          icon="+"
           title="No duplicates"
-          description="Every package in this tree resolved to exactly one version — unusually tidy."
+          description="Every package in this tree resolved to exactly one version - unusually tidy."
         />
       ) : (
         <ul className="divide-y divide-[var(--color-line)]">

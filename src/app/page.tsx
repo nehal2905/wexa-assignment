@@ -34,7 +34,7 @@ export default function HomePage() {
             <h2 className="text-lg font-semibold tracking-tight">Start from a real project</h2>
             <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-[var(--color-ink-muted)]">
               Each of these was crawled from the npm registry and matched against live OSV
-              advisories. Several are deliberately pinned to older releases — the versions
+              advisories. Several are deliberately pinned to older releases - the versions
               people are still actually running. Counts below are{" "}
               <strong className="font-medium text-[var(--color-ink)]">
                 advisories reachable through dependencies that ship
@@ -179,7 +179,7 @@ async function RootGrid() {
     return (
       <div className="surface-card">
         <EmptyState
-          icon="◇"
+          icon="*"
           title="The graph is empty"
           description="The schema exists but no data has been loaded yet. Run `npm run db:seed` to crawl the registry and populate it."
         />

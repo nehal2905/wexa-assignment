@@ -24,7 +24,7 @@ import { COMPARE_FOOTPRINTS, CONNECTION_PATH, DEPENDENTS } from "./compare";
  * Every query the application runs, in one list.
  *
  * The `/queries` page renders this array directly, so what a reader sees there
- * is the same object the API executes — not a copy that has to be kept in sync.
+ * is the same object the API executes - not a copy that has to be kept in sync.
  * Adding a query without registering it here is the only way to get them out of
  * step, and `verify-queries.ts` catches that by running the whole catalog.
  */

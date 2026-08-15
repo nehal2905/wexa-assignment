@@ -33,14 +33,14 @@ import { fail, formatNumber, heading, ok, style, warn } from "./cli";
  *  - It surfaces the server-side timing of each query, which is how the
  *    traversal depths and result limits in the catalog were chosen.
  *  - It fails if a query returns zero rows where rows are expected, which is the
- *    failure mode a smoke test would otherwise miss entirely — an empty table
+ *    failure mode a smoke test would otherwise miss entirely - an empty table
  *    looks exactly like "no problems found".
  */
 
 interface Check {
   name: string;
   run: () => Promise<{ rows: unknown[]; meta: { consumedAfterMs: number; roundTripMs: number } }>;
-  /** Zero rows is a failure for these — the seeded data guarantees results. */
+  /** Zero rows is a failure for these - the seeded data guarantees results. */
   expectRows: boolean;
 }
 
@@ -97,7 +97,7 @@ const CHECKS: Check[] = [
     },
   },
   {
-    name: "findConnectionPath(express → ms)",
+    name: "findConnectionPath(express -> ms)",
     expectRows: false,
     run: () => findConnectionPath("express", "ms"),
   },
@@ -110,7 +110,7 @@ const CHECKS: Check[] = [
  * The production-scoped reachability queries constrain the traversal with an
  * `ALL(...)` predicate inside `shortestPath`, relying on the planner evaluating
  * it during expansion rather than as a post-filter. That is a real assumption
- * about the query planner, and if it were wrong the failure would be silent —
+ * about the query planner, and if it were wrong the failure would be silent -
  * the tool would simply under-report. So it is asserted here rather than
  * trusted.
  */
@@ -124,7 +124,7 @@ async function checkInvariants(): Promise<number> {
   if (leaked.length > 0) {
     failures += 1;
     fail(
-      `production scope leaked ${leaked.length} dev path(s) — e.g. ${leaked[0]?.pathKeys.join(" -> ")}`,
+      `production scope leaked ${leaked.length} dev path(s) - e.g. ${leaked[0]?.pathKeys.join(" -> ")}`,
     );
   } else {
     ok(
@@ -204,7 +204,7 @@ async function checkInvariants(): Promise<number> {
  *
  * `/queries` renders `QUERY_CATALOG` and the README claims it shows every
  * statement the app runs. A query that is defined and executed but never
- * registered breaks that claim silently — it happened once already with
+ * registered breaks that claim silently - it happened once already with
  * `PACKAGE_VERSIONS`, which runs on every package page and was missing from the
  * page that promises to list it.
  *
@@ -242,7 +242,7 @@ function checkCatalogCompleteness(): number {
 }
 
 async function main(): Promise<void> {
-  heading(`Understory · verifying ${CHECKS.length} query paths across ${QUERY_CATALOG.length} catalog entries`);
+  heading(`Understory | verifying ${CHECKS.length} query paths across ${QUERY_CATALOG.length} catalog entries`);
 
   let failures = 0;
   let slowest = { name: "", ms: 0 };
@@ -255,23 +255,23 @@ async function main(): Promise<void> {
 
       if (totalMs > slowest.ms) slowest = { name: check.name, ms: totalMs };
 
-      const timing = style.dim(`${serverMs} ms server · ${totalMs} ms round trip`);
+      const timing = style.dim(`${serverMs} ms server | ${totalMs} ms round trip`);
       const count = `${formatNumber(result.rows.length)} row${result.rows.length === 1 ? "" : "s"}`;
 
       if (check.expectRows && result.rows.length === 0) {
         failures += 1;
-        fail(`${check.name} — returned no rows, but rows were expected`);
+        fail(`${check.name} - returned no rows, but rows were expected`);
         continue;
       }
 
       if (totalMs > 1500) {
-        warn(`${check.name} — ${count}, ${timing}  ${style.yellow("(slow)")}`);
+        warn(`${check.name} - ${count}, ${timing}  ${style.yellow("(slow)")}`);
       } else {
-        ok(`${check.name} — ${count}, ${timing}`);
+        ok(`${check.name} - ${count}, ${timing}`);
       }
     } catch (error) {
       failures += 1;
-      fail(`${check.name} — ${error instanceof Error ? error.message : String(error)}`);
+      fail(`${check.name} - ${error instanceof Error ? error.message : String(error)}`);
 
       // The API deliberately hides driver detail from users (see db/errors.ts).
       // This is a developer tool, so unwrap the chain and show what actually broke.

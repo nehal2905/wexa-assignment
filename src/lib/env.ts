@@ -7,7 +7,7 @@ import { resolve } from "node:path";
  * Two hard rules drive this module:
  *
  *  1. Credentials are read from the environment and never from source. There is
- *     no fallback default password anywhere in this file — a missing variable is
+ *     no fallback default password anywhere in this file - a missing variable is
  *     an error, not something we paper over with a guess.
  *  2. A misconfigured environment must produce an actionable message, not a
  *     `TypeError: Cannot read property 'uri' of undefined` five frames deep in
@@ -37,7 +37,7 @@ export interface Env {
   readonly neo4jMaxPoolSize: number;
   /** True when pointed at a `bolt+s://` / `neo4j+s://` (TLS) endpoint. */
   readonly isSecure: boolean;
-  /** Host only, safe to log or show in a UI — never includes credentials. */
+  /** Host only, safe to log or show in a UI - never includes credentials. */
   readonly displayHost: string;
 }
 
@@ -49,7 +49,7 @@ let envFilesLoaded = false;
 
 /**
  * Minimal .env reader. Loads `.env.local` then `.env`, and never overwrites a
- * variable that is already set — so real environment variables (Vercel, CI,
+ * variable that is already set - so real environment variables (Vercel, CI,
  * shell exports) always win over files on disk.
  *
  * This is intentionally ~30 lines rather than a `dotenv` dependency: the format
@@ -134,7 +134,7 @@ function parseEnv(): Env {
     throw new ConfigurationError(
       `Missing required environment variable${missing.length > 1 ? "s" : ""}: ${missing.join(", ")}. ` +
         `Copy .env.example to .env.local and fill in your CognoDB connection details ` +
-        `(console.cognodb.com → your instance → Connect).`,
+        `(console.cognodb.com -> your instance -> Connect).`,
       missing,
     );
   }
@@ -155,7 +155,7 @@ function parseEnv(): Env {
   if (safePassword.length === 0) {
     throw new ConfigurationError(
       "NEO4J_PASSWORD is set but empty. CognoDB shows the generated password exactly " +
-        "once at instance creation — if you no longer have it, rotate it from the console.",
+        "once at instance creation - if you no longer have it, rotate it from the console.",
       ["NEO4J_PASSWORD"],
     );
   }

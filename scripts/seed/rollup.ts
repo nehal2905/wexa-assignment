@@ -10,8 +10,8 @@ import type { CrawlResult } from "./resolve";
  * production dependency closure and the number of advisories reachable inside
  * it. Computing that live means thirty-one transitive closures per page load.
  * On a laptop-hosted Neo4j that takes about fifty milliseconds and looks fine;
- * on the CognoDB free tier — 0.5 burstable vCPU, and a server-side query
- * deadline around five seconds — it does not finish at all.
+ * on the CognoDB free tier - 0.5 burstable vCPU, and a server-side query
+ * deadline around five seconds - it does not finish at all.
  *
  * The fix is the ordinary one: precompute the aggregate for the index, keep the
  * detail pages live. Every package page still runs the real traversal against
@@ -33,9 +33,9 @@ import type { CrawlResult } from "./resolve";
 const SEVERE: ReadonlySet<Severity> = new Set<Severity>(["CRITICAL", "HIGH"]);
 
 export interface AdvisoryIndex {
-  /** versionKey → advisory ids affecting it. */
+  /** versionKey -> advisory ids affecting it. */
   byVersion: Map<string, string[]>;
-  /** advisory id → severity. */
+  /** advisory id -> severity. */
   severityById: Map<string, Severity>;
 }
 
@@ -45,7 +45,7 @@ export interface AdvisoryIndex {
  */
 export function computeRootRollups(crawl: CrawlResult, advisories: AdvisoryIndex): void {
   // Adjacency map over shipping edges only. Built once and reused across all
-  // roots — rebuilding it per root would make this quadratic for no reason.
+  // roots - rebuilding it per root would make this quadratic for no reason.
   const shipping = new Map<string, string[]>();
   for (const edge of crawl.dependsOn) {
     if (edge.scope === "dev") continue;
@@ -61,7 +61,7 @@ export function computeRootRollups(crawl: CrawlResult, advisories: AdvisoryIndex
     if (!crawl.versions.has(start)) continue;
 
     // Breadth-first, depth-capped to match the live queries' `*0..8` bound.
-    // `seen` doubles as the cycle guard — npm graphs really do contain cycles.
+    // `seen` doubles as the cycle guard - npm graphs really do contain cycles.
     const seen = new Set<string>([start]);
     let frontier = [start];
 

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
  * Primary navigation.
  *
  * A client component solely because it needs `usePathname` to mark the active
- * route — the rest of the header stays on the server.
+ * route - the rest of the header stays on the server.
  */
 const LINKS = [
   { href: "/", label: "Explore", exact: true },

@@ -10,7 +10,7 @@ import { writeRows } from "@/lib/db/driver";
  * 25,000 round trips; against a cloud instance at ~40 ms each, about seventeen
  * minutes of pure latency. Batching with `UNWIND` sends 500 rows in a single
  * statement, turning the same load into a couple of hundred round trips and
- * about half a minute — and it is still fully parameterised, because `$rows` is
+ * about half a minute - and it is still fully parameterised, because `$rows` is
  * one parameter that happens to be a list.
  *
  * ## Why `MERGE` and not `CREATE`
@@ -21,7 +21,7 @@ import { writeRows } from "@/lib/db/driver";
  * re-seeding is the normal way to pick up fresh advisory data.
  *
  * Batch size is deliberately conservative. The free (c0) tier has 256 MB of RAM,
- * and transaction state lives in heap — a 10,000-row batch will fail there while
+ * and transaction state lives in heap - a 10,000-row batch will fail there while
  * working fine on a laptop.
  */
 
@@ -40,7 +40,7 @@ export interface LoadProgress {
  * distinguish the two (see `int()` in `db/cypher.ts`). Left alone, a download
  * count of 12,340,000 is stored as `1.234e7`: it displays with a decimal point,
  * it compares differently in `ORDER BY`, and `intToNumber` has to guess on the
- * way back out. These are counts and byte sizes — they are integers, and the
+ * way back out. These are counts and byte sizes - they are integers, and the
  * database should know that.
  *
  * `cvssScore` is deliberately absent: 7.5 is genuinely fractional.

@@ -7,8 +7,8 @@ import { NavLinks } from "@/components/nav-links";
 
 export const metadata: Metadata = {
   title: {
-    default: "Understory — the dependency graph beneath your package.json",
-    template: "%s · Understory",
+    default: "Understory - the dependency graph beneath your package.json",
+    template: "%s | Understory",
   },
   description:
     "Explore the transitive dependency graph of any npm package: which vulnerabilities it can actually reach and through what chain, which maintainers control the most of your tree, and which single upgrade removes the most risk. Built on CognoDB.",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Understory",
     description:
-      "The dependency graph beneath your package.json — vulnerability reachability, maintainer blast radius, and license exposure.",
+      "The dependency graph beneath your package.json - vulnerability reachability, maintainer blast radius, and license exposure.",
     type: "website",
   },
 };
@@ -68,7 +68,7 @@ function SiteHeader() {
  * The logo is an inline SVG rather than an image file: it is a dozen elements,
  * it inherits `currentColor`, and it costs no extra request.
  *
- * The shape is the idea — a canopy line with the branching structure hanging
+ * The shape is the idea - a canopy line with the branching structure hanging
  * below it, which is what the application shows you.
  */
 function UnderstoryMark() {
@@ -121,7 +121,7 @@ function SiteFooter() {
           . Stored as a graph in CognoDB.
         </p>
         <p className="shrink-0">
-          A point-in-time snapshot — not a substitute for{" "}
+          A point-in-time snapshot - not a substitute for{" "}
           <span className="font-mono text-[11.5px]">npm audit</span>.
         </p>
       </div>

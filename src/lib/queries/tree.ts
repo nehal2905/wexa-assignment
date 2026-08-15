@@ -19,9 +19,9 @@ export const PACKAGE_OVERVIEW = defineQuery({
   question: "What am I looking at, and how bad is it?",
   whyGraph:
     "Every number on this panel except the package's own metadata is a property of " +
-    "the closure beneath it — total dependencies, deepest chain, how many carry " +
+    "the closure beneath it - total dependencies, deepest chain, how many carry " +
     "advisories. All of them come from one traversal.",
-  traversal: "0–8 hops, aggregated",
+  traversal: "0-8 hops, aggregated",
   parameters: [
     { name: "rootKey", description: "Version key", example: "express@4.17.1" },
   ],
@@ -29,7 +29,7 @@ export const PACKAGE_OVERVIEW = defineQuery({
     MATCH (root:Version { key: $rootKey })-[:VERSION_OF]->(pkg:Package)
     OPTIONAL MATCH (root)-[:LICENSED_UNDER]->(ownLicense:License)
 
-    // Direct dependencies — one hop only.
+    // Direct dependencies - one hop only.
     OPTIONAL MATCH (root)-[:DEPENDS_ON]->(direct:Version)
     WITH root, pkg, ownLicense, count(DISTINCT direct) AS directCount
 
@@ -73,7 +73,7 @@ export const PACKAGE_OVERVIEW = defineQuery({
            root.unpackedSize    AS unpackedSize,
            ownLicense.spdxId    AS license,
            directCount          AS directDependencies,
-           // members includes the root itself at depth 0 — subtract it.
+           // members includes the root itself at depth 0 - subtract it.
            size(members) - 1    AS totalDependencies,
            deepestChain,
            deprecatedCount,
@@ -124,7 +124,7 @@ function optionalInt(value: unknown): number | null {
  * that makes a reader stop believing any number on the page.
  *
  * The only difference from the unrestricted statement is the `ALL(...)`
- * predicate constraining the traversal — the same technique used by the
+ * predicate constraining the traversal - the same technique used by the
  * reachability queries, and covered by the same invariant check in
  * `scripts/verify-queries.ts`.
  */
@@ -224,7 +224,7 @@ export async function getPackageOverview(
 /**
  * Depth is a literal in each statement, not a parameter.
  *
- * Cypher does not accept a parameter as a variable-length bound — `*1..$depth`
+ * Cypher does not accept a parameter as a variable-length bound - `*1..$depth`
  * is a syntax error, not a slow query. The alternative would be building the
  * statement by concatenation, which this codebase forbids by construction (see
  * `db/cypher.ts`). So the four depths the UI offers are four static statements,
@@ -235,12 +235,12 @@ export async function getPackageOverview(
  *
  * The obvious spelling is `shortestPath((root)-[:DEPENDS_ON*0..N]->(node))`,
  * where a lower bound of zero is supposed to yield the start node itself at
- * depth 0. Neo4j does that. CognoDB does not — it returns only paths of length
+ * depth 0. Neo4j does that. CognoDB does not - it returns only paths of length
  * one or more, so the audited package was silently absent from its own graph.
  *
  * That is not a cosmetic difference. The same spelling appears in the
  * reachability and licence queries, where a missing root means advisories and
- * obligations *on the package you are auditing* go unreported — the one failure
+ * obligations *on the package you are auditing* go unreported - the one failure
  * mode a security tool must never have. (`express@4.17.1` carries two advisories
  * itself; before this fix, neither appeared.)
  *
@@ -350,9 +350,9 @@ export const DEPENDENCY_GRAPH_NODES = defineQuery({
   question: "Show me the shape of what I'm installing.",
   whyGraph:
     "The visualisation needs each node's shortest distance from the root, which is " +
-    "the length of a path — a value that does not exist until the graph has been " +
+    "the length of a path - a value that does not exist until the graph has been " +
     "walked. There is no column to select it from.",
-  traversal: "0–4 hops, selectable; one static statement per depth",
+  traversal: "0-4 hops, selectable; one static statement per depth",
   parameters: [
     { name: "rootKey", description: "Version key", example: "express@4.17.1" },
     { name: "limit", description: "Node ceiling, to keep the canvas readable", example: "400" },

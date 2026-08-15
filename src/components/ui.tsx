@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 /**
  * Presentational primitives.
  *
- * All server components — none of them hold state, so none of them need to ship
+ * All server components - none of them hold state, so none of them need to ship
  * JavaScript to the browser. Only the graph canvas, the search box and the
  * filter controls are client components, which keeps the bundle small enough
  * that the app is usable on a slow connection.
@@ -159,13 +159,13 @@ export function Code({ children, className }: { children: ReactNode; className?:
  * Empty state.
  *
  * Deliberately explicit about *why* there is nothing here. "No results" leaves a
- * user unsure whether the tool is broken or the answer is genuinely nothing —
+ * user unsure whether the tool is broken or the answer is genuinely nothing -
  * and in a security tool those two readings could not be more different.
  */
 export function EmptyState({
   title,
   description,
-  icon = "○",
+  icon = "o",
   action,
 }: {
   title: string;
@@ -215,7 +215,7 @@ export function PanelSkeleton({ rows = 4, title }: { rows?: number; title?: stri
           </div>
         ))}
       </div>
-      <span className="sr-only">Loading…</span>
+      <span className="sr-only">Loading...</span>
     </div>
   );
 }
@@ -228,7 +228,7 @@ export function PanelSkeleton({ rows = 4, title }: { rows?: number; title?: stri
  * Footer strip showing which catalog query produced a panel and how long the
  * database took.
  *
- * This is not decoration. It makes the graph work visible — a reader can see
+ * This is not decoration. It makes the graph work visible - a reader can see
  * that the maintainer panel really is a traversal, follow the link to the exact
  * Cypher, and check the server-side timing themselves.
  */
@@ -238,7 +238,7 @@ export function QueryFootnote({
   rowCount,
 }: {
   queryId: string;
-  /** -1 when the server did not report a duration — see `summaryMs` in db/driver.ts. */
+  /** -1 when the server did not report a duration - see `summaryMs` in db/driver.ts. */
   serverMs: number;
   rowCount?: number;
 }) {
@@ -250,7 +250,7 @@ export function QueryFootnote({
       >
         {queryId}
       </a>
-      <span aria-hidden>·</span>
+      <span aria-hidden>|</span>
       {/* Not every openCypher server reports query timing over Bolt. Saying so is
           better than printing a made-up 0 ms. */}
       <span className="tabular">
@@ -258,7 +258,7 @@ export function QueryFootnote({
       </span>
       {rowCount !== undefined && (
         <>
-          <span aria-hidden>·</span>
+          <span aria-hidden>|</span>
           <span className="tabular">
             {rowCount} row{rowCount === 1 ? "" : "s"}
           </span>

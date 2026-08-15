@@ -6,7 +6,7 @@
  * OSV advisories publish a CVSS *vector* (`CVSS:3.1/AV:N/AC:L/...`) but not the
  * numeric base score. GitHub advisories separately publish a coarse severity
  * band ("HIGH", "MODERATE"), which is enough to colour a badge but not enough to
- * rank two HIGH findings against each other — and ranking is exactly what the
+ * rank two HIGH findings against each other - and ranking is exactly what the
  * "which upgrade removes the most risk" view needs.
  *
  * The base score formula is fully specified and deterministic (CVSS v3.1
@@ -17,7 +17,7 @@
  * v4.0 vectors are *not* scored: v4 replaces the closed-form equation with a
  * large interpolation table, which is not worth vendoring for the handful of
  * advisories that currently carry one. Those fall back to the advisory's
- * published severity band — see `normaliseSeverity` in the graph model.
+ * published severity band - see `normaliseSeverity` in the graph model.
  */
 
 const ATTACK_VECTOR: Record<string, number> = { N: 0.85, A: 0.62, L: 0.55, P: 0.2 };
@@ -38,9 +38,9 @@ const PRIVILEGES_REQUIRED: Record<"U" | "C", Record<string, number>> = {
 /**
  * CVSS-specific rounding: always round *up* to one decimal place.
  *
- * The integer arithmetic is prescribed by the specification, not incidental —
+ * The integer arithmetic is prescribed by the specification, not incidental -
  * a plain `Math.ceil(x * 10) / 10` disagrees with the reference implementation
- * on values that are exactly representable only after the ×100000 scaling,
+ * on values that are exactly representable only after the x100000 scaling,
  * producing scores that are off by 0.1 from every published score.
  */
 function roundUp(input: number): number {

@@ -8,7 +8,7 @@ getting three environment variables into the right place.
 
 ## 1. Push to GitHub
 
-Create an **empty** repository on github.com — no README, no `.gitignore`, no
+Create an **empty** repository on github.com - no README, no `.gitignore`, no
 licence, since the repo already has all three. Then:
 
 ```bash
@@ -32,8 +32,8 @@ git ls-files | grep -E '^\.env'
 
 ### Via the dashboard
 
-1. <https://vercel.com/new> → **Import Git Repository** → pick the repo.
-2. Framework preset is detected as **Next.js**. Leave build settings alone —
+1. <https://vercel.com/new> -> **Import Git Repository** -> pick the repo.
+2. Framework preset is detected as **Next.js**. Leave build settings alone -
    `next build` and the default output directory are correct.
 3. Before clicking **Deploy**, open **Environment Variables** and add:
 
@@ -45,14 +45,14 @@ git ls-files | grep -E '^\.env'
    | `NEO4J_DATABASE` | `neo4j` | Production, Preview, Development |
    | `NEO4J_MAX_POOL_SIZE` | `8` | Production, Preview, Development |
 
-4. Under **Settings → Functions**, set the **region** to whichever Vercel region
+4. Under **Settings -> Functions**, set the **region** to whichever Vercel region
    is geographically closest to your CognoDB instance.
 
 5. **Deploy.**
 
 > **Region is the single biggest performance lever here.**
 > Every query carries a network round trip, and from a laptop in a different
-> region to the instance that floor is around 780 ms — more than the query time
+> region to the instance that floor is around 780 ms - more than the query time
 > itself for most panels. Co-locating the serverless functions with the database
 > collapses it. The package page fires seven queries in parallel, so the saving
 > compounds.
@@ -130,19 +130,19 @@ bundler from trying to trace it into a client bundle.
 
 **Everything is dynamic.** Pages declare `export const dynamic = "force-dynamic"`
 because every panel reflects live graph state. Nothing is prerendered at build
-time, so a build never needs database access — which also means a deploy cannot
+time, so a build never needs database access - which also means a deploy cannot
 fail because the database happened to be briefly unavailable.
 
 **Keep the instance running.** The hosted demo reads from CognoDB on every
 request. If the instance is paused or deleted, the site still loads and shows the
-database-unreachable screen with a diagnosis rather than crashing — but there
+database-unreachable screen with a diagnosis rather than crashing - but there
 will be no data to explore.
 
 ---
 
 ## 5. Re-seeding the deployed database
 
-Seeding runs from a developer machine against whatever `.env.local` points at —
+Seeding runs from a developer machine against whatever `.env.local` points at -
 there is no seed step in the deployment pipeline, deliberately, so a deploy can
 never mutate production data as a side effect.
 
@@ -153,5 +153,5 @@ To refresh advisory data on the live instance:
 npm run db:seed
 ```
 
-The load is idempotent — every write is a `MERGE` against a uniqueness
-constraint — so re-running updates in place rather than duplicating.
+The load is idempotent - every write is a `MERGE` against a uniqueness
+constraint - so re-running updates in place rather than duplicating.

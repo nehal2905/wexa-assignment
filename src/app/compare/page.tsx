@@ -15,7 +15,7 @@ import { compareFootprints } from "@/lib/queries/compare";
  * Side-by-side dependency footprint comparison.
  *
  * The question behind this page is one every team has had: "we're picking
- * between two libraries — what does each one actually cost us?" The answer is a
+ * between two libraries - what does each one actually cost us?" The answer is a
  * set operation over two transitive closures, which is the single clearest
  * example in this application of something a relational schema would find
  * genuinely awkward.
@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Compare two packages",
   description:
-    "What two npm packages share, and what each one drags in on its own — computed over their full transitive dependency closures.",
+    "What two npm packages share, and what each one drags in on its own - computed over their full transitive dependency closures.",
 };
 
 interface PageProps {
@@ -40,7 +40,7 @@ export default async function ComparePage({ searchParams }: PageProps) {
       <SectionHeading
         eyebrow="Comparison"
         title="What does each one actually cost you?"
-        description="Pick two packages. Understory walks the dependency closure of each — every resolved version that would actually be installed, up to eight hops down — and reports what they have in common and what each one drags in alone. Dev tooling is excluded, because npm never installs a dependency's own devDependencies."
+        description="Pick two packages. Understory walks the dependency closure of each - every resolved version that would actually be installed, up to eight hops down - and reports what they have in common and what each one drags in alone. Dev tooling is excluded, because npm never installs a dependency's own devDependencies."
       />
 
       <div className="surface-card grid gap-4 p-5 sm:grid-cols-2">
@@ -62,7 +62,7 @@ export default async function ComparePage({ searchParams }: PageProps) {
         {left === null || right === null ? (
           <div className="surface-card">
             <EmptyState
-              icon="⇄"
+              icon="="
               title="Choose two packages"
               description="Both sides need a selection before there is anything to compare. Try express against koa, or axios against got."
               action={
@@ -87,7 +87,7 @@ export default async function ComparePage({ searchParams }: PageProps) {
         ) : (
           <Suspense
             key={`${left}-${right}`}
-            fallback={<PanelSkeleton title="Comparing closures…" rows={6} />}
+            fallback={<PanelSkeleton title="Comparing closures..." rows={6} />}
           >
             <ComparisonResult left={left} right={right} />
           </Suspense>
@@ -99,7 +99,7 @@ export default async function ComparePage({ searchParams }: PageProps) {
 
 async function ComparisonResult({ left, right }: { left: string; right: string }) {
   try {
-    // Resolve each name to a concrete version node before comparing — the graph
+    // Resolve each name to a concrete version node before comparing - the graph
     // stores versions, not packages, and the answer differs between them.
     const [leftVersions, rightVersions] = await Promise.all([
       getPackageVersions(left),
@@ -116,7 +116,7 @@ async function ComparisonResult({ left, right }: { left: string; right: string }
       return (
         <div className="surface-card">
           <EmptyState
-            icon="○"
+            icon="o"
             title="One of those isn't in the graph"
             description={`${leftVersion === undefined ? left : right} was not found in this dataset. Understory holds a seeded slice of the registry, not all of npm.`}
           />
@@ -134,7 +134,7 @@ async function ComparisonResult({ left, right }: { left: string; right: string }
       return (
         <div className="surface-card">
           <EmptyState
-            icon="○"
+            icon="o"
             title="Nothing to compare"
             description="Neither package has any dependencies in this graph."
           />

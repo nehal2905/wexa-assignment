@@ -6,7 +6,7 @@ import { logError, toAppError, toErrorBody } from "@/lib/db/errors";
  * Shared plumbing for the handful of route handlers.
  *
  * Most of this application's data is fetched inside Server Components, which
- * call the query layer directly — no HTTP hop, no serialisation, no separate
+ * call the query layer directly - no HTTP hop, no serialisation, no separate
  * error path. Routes exist only where the *browser* genuinely needs to fetch
  * something after the page has loaded: search-as-you-type, and the health probe.
  *
@@ -22,7 +22,7 @@ export type RouteHandler<T> = () => Promise<T>;
  *
  * Every throw goes through `toAppError`, so a `ServiceUnavailable` from the
  * driver becomes a 503 with an actionable hint while an unexpected `TypeError`
- * becomes a generic 500 — and in neither case does the client see internals.
+ * becomes a generic 500 - and in neither case does the client see internals.
  */
 export async function handleRoute<T>(
   context: string,
@@ -50,7 +50,7 @@ export async function handleRoute<T>(
 /**
  * Reads a required string parameter, trimming and length-checking it.
  *
- * Length limits are not paranoia about injection — parameters go to the driver
+ * Length limits are not paranoia about injection - parameters go to the driver
  * out-of-band and cannot alter a statement (see `db/cypher.ts`). They are about
  * not asking a 0.5 vCPU instance to run a `CONTAINS` scan for a 4 KB string.
  */

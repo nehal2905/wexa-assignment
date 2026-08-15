@@ -33,11 +33,11 @@ export function heading(text: string): void {
 }
 
 export function step(text: string): void {
-  process.stdout.write(`  ${style.dim("›")} ${text}\n`);
+  process.stdout.write(`  ${style.dim(">")} ${text}\n`);
 }
 
 export function ok(text: string): void {
-  process.stdout.write(`  ${style.green("✓")} ${text}\n`);
+  process.stdout.write(`  ${style.green("+")} ${text}\n`);
 }
 
 export function warn(text: string): void {
@@ -45,13 +45,13 @@ export function warn(text: string): void {
 }
 
 export function fail(text: string): void {
-  process.stderr.write(`  ${style.red("✗")} ${text}\n`);
+  process.stderr.write(`  ${style.red("x")} ${text}\n`);
 }
 
-/** Overwrites the current line — used for progress that would otherwise scroll. */
+/** Overwrites the current line - used for progress that would otherwise scroll. */
 export function progress(text: string): void {
   if (!useColour) return;
-  process.stdout.write(`\r  ${style.dim("›")} ${text}${ESC}[K`);
+  process.stdout.write(`\r  ${style.dim(">")} ${text}${ESC}[K`);
 }
 
 export function endProgress(): void {
@@ -86,7 +86,7 @@ export function formatDuration(ms: number): string {
  */
 export function reportFatal(context: string, error: unknown): never {
   const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`\n${style.red("✗")} ${style.bold(context)}\n\n  ${message}\n`);
+  process.stderr.write(`\n${style.red("x")} ${style.bold(context)}\n\n  ${message}\n`);
 
   const hint = (error as { hint?: unknown }).hint;
   if (typeof hint === "string") {

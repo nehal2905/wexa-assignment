@@ -4,13 +4,13 @@ import type { LicenseCategory, Severity } from "@/lib/graph/model";
  * Presentation helpers shared across components.
  *
  * Kept out of the components themselves so that the same number renders the same
- * way in every panel — a download count formatted three different ways across
+ * way in every panel - a download count formatted three different ways across
  * one page is the sort of thing that quietly makes an interface feel unfinished.
  */
 
-/** 1_234_567 → "1.2M". Keeps dense tables readable. */
+/** 1_234_567 -> "1.2M". Keeps dense tables readable. */
 export function compactNumber(value: number | null | undefined): string {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return "-";
   if (value < 1000) return String(value);
   if (value < 1_000_000) {
     const thousands = value / 1000;
@@ -24,22 +24,22 @@ export function compactNumber(value: number | null | undefined): string {
 }
 
 export function exactNumber(value: number | null | undefined): string {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return "-";
   return value.toLocaleString("en-US");
 }
 
 export function fileSize(bytes: number | null | undefined): string {
-  if (bytes === null || bytes === undefined) return "—";
+  if (bytes === null || bytes === undefined) return "-";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** ISO timestamp → "Mar 2019". Precision beyond the month is noise here. */
+/** ISO timestamp -> "Mar 2019". Precision beyond the month is noise here. */
 export function monthYear(iso: string | null | undefined): string {
-  if (iso === null || iso === undefined) return "—";
+  if (iso === null || iso === undefined) return "-";
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
@@ -70,7 +70,7 @@ export const SEVERITY_LABEL: Record<Severity, string> = {
  * Returned as complete class strings rather than composed from a colour name,
  * because Tailwind's compiler only keeps classes it can see written out in full.
  * A dynamically assembled `text-${severity}` would be stripped from the bundle
- * and the badge would render unstyled in production but fine in development —
+ * and the badge would render unstyled in production but fine in development -
  * a genuinely nasty class of bug.
  */
 export const SEVERITY_CLASSES: Record<Severity, string> = {
@@ -98,7 +98,7 @@ const SEVERITY_RANK: Record<Severity, number> = {
   UNKNOWN: 0,
 };
 
-/** The most serious severity in a list — what a summary badge should show. */
+/** The most serious severity in a list - what a summary badge should show. */
 export function worstSeverity(severities: readonly Severity[]): Severity | null {
   if (severities.length === 0) return null;
   return severities.reduce((worst, current) =>
@@ -164,7 +164,7 @@ export function isDevOnlyPath(scopes: readonly string[]): boolean {
  * cannot be smuggled through a single dynamic segment: percent-encoding it as
  * `%2F` is rejected or silently normalised by most servers and proxies. So the
  * route is a catch-all (`/package/[...name]`) and the name is split on `/` with
- * each segment encoded independently — producing `/package/@babel/core`, which
+ * each segment encoded independently - producing `/package/@babel/core`, which
  * is both valid and readable.
  *
  * This matters more than it sounds: scoped packages are a large fraction of any

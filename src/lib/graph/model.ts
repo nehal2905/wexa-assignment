@@ -1,29 +1,29 @@
 /**
  * The graph data model, in one place.
  *
- * ┌──────────────┐  MAINTAINS   ┌───────────┐
- * │  Maintainer  │─────────────▶│  Package  │
- * └──────────────┘              └───────────┘
- *         ▲                           ▲
- *         │ PUBLISHED_BY              │ VERSION_OF
- *         │                           │
- *    ┌─────────┐   DEPENDS_ON    ┌─────────┐
- *    │ Version │────────────────▶│ Version │   (self-referential: the tree)
- *    └─────────┘  {range,scope}  └─────────┘
- *         │                           ▲
- *         │ LICENSED_UNDER            │ AFFECTS {introducedIn, fixedIn}
- *         ▼                           │
- *    ┌─────────┐              ┌───────────────┐
- *    │ License │              │ Vulnerability │
- *    └─────────┘              └───────────────┘
+ * +--------------+  MAINTAINS   +-----------+
+ * |  Maintainer  |------------->|  Package  |
+ * +--------------+              +-----------+
+ *         ^                           ^
+ *         | PUBLISHED_BY              | VERSION_OF
+ *         |                           |
+ *    +---------+   DEPENDS_ON    +---------+
+ *    | Version |---------------->| Version |   (self-referential: the tree)
+ *    +---------+  {range,scope}  +---------+
+ *         |                           ^
+ *         | LICENSED_UNDER            | AFFECTS {introducedIn, fixedIn}
+ *         v                           |
+ *    +---------+              +---------------+
+ *    | License |              | Vulnerability |
+ *    +---------+              +---------------+
  *
  * ## The one modelling decision that matters
  *
- * `DEPENDS_ON` connects **Version → Version**, not Package → Package.
+ * `DEPENDS_ON` connects **Version -> Version**, not Package -> Package.
  *
  * A package.json records a *range* ("^4.17.0"), but what actually ends up on
- * disk is a single resolved version. If the graph stored Package → Package
- * edges, then "does my app reach a vulnerable package?" would be unanswerable —
+ * disk is a single resolved version. If the graph stored Package -> Package
+ * edges, then "does my app reach a vulnerable package?" would be unanswerable -
  * vulnerabilities apply to version ranges, so the answer depends entirely on
  * which version each edge resolved to. Modelling concrete versions as first-class
  * nodes and resolving every range at seed time (see `scripts/seed/resolve.ts`) is
@@ -61,7 +61,7 @@ export interface PackageNode {
   /** Downloads in the last week, from api.npmjs.org. Null when unavailable. */
   weeklyDownloads: number | null;
   /**
-   * True for the packages the seed crawl started from — the "applications" a
+   * True for the packages the seed crawl started from - the "applications" a
    * user picks in the UI, as opposed to packages that were only pulled in
    * transitively.
    */
@@ -144,12 +144,12 @@ export type RelationshipType = (typeof RELATIONSHIP_TYPES)[number];
 /**
  * Dependency scope, mirroring how npm actually installs.
  *
- *  - `prod`     — `dependencies`. Installed transitively, forever. Ships to users.
- *  - `dev`      — `devDependencies`. Installed only for the package being developed,
+ *  - `prod`     - `dependencies`. Installed transitively, forever. Ships to users.
+ *  - `dev`      - `devDependencies`. Installed only for the package being developed,
  *                 never transitively. We therefore record these *only* on root
  *                 packages, which is exactly npm's own semantics.
- *  - `optional` — `optionalDependencies`. Installed transitively but tolerated to fail.
- *  - `peer`     — `peerDependencies`. Recorded for completeness, but not traversed
+ *  - `optional` - `optionalDependencies`. Installed transitively but tolerated to fail.
+ *  - `peer`     - `peerDependencies`. Recorded for completeness, but not traversed
  *                 by the crawler: peer ranges are deliberately wide and following
  *                 them explodes the graph well past the free tier's budget.
  */

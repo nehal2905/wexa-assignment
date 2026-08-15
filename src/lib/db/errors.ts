@@ -6,7 +6,7 @@ import { ConfigurationError } from "@/lib/env";
  *
  * The point of this module is that *every* error surfaced to a user or an HTTP
  * client has been through `toAppError`. Nothing raw from the driver, the network
- * stack, or `JSON.parse` reaches a response body — so we never leak a
+ * stack, or `JSON.parse` reaches a response body - so we never leak a
  * connection string, a stack trace, or a Cypher statement to the browser, and
  * the UI always has a stable `code` to branch on.
  */
@@ -32,7 +32,7 @@ const STATUS_BY_CODE: Record<ErrorCode, number> = {
 export interface AppErrorOptions {
   /** Actionable next step, shown beneath the message in the UI. */
   hint?: string;
-  /** Original error, kept for server-side logging only — never serialised. */
+  /** Original error, kept for server-side logging only - never serialised. */
   cause?: unknown;
   /** Whether retrying the same request might succeed. */
   retryable?: boolean;
@@ -142,7 +142,7 @@ export function toAppError(error: unknown): AppError {
 
     if (code === "Neo.ClientError.Database.DatabaseNotFound") {
       return new AppError("CONFIGURATION", "The configured database does not exist.", {
-        hint: "Check NEO4J_DATABASE — CognoDB and Neo4j both default to `neo4j`.",
+        hint: "Check NEO4J_DATABASE - CognoDB and Neo4j both default to `neo4j`.",
         cause: error,
         retryable: false,
       });
@@ -192,7 +192,7 @@ export function logError(context: string, error: unknown): void {
   const cause = app.cause;
   // eslint-disable-next-line no-console -- server-side diagnostics
   console.error(
-    `[understory] ${context} — ${app.code}: ${app.message}`,
+    `[understory] ${context} - ${app.code}: ${app.message}`,
     cause instanceof Error ? `\n  caused by: ${cause.name}: ${cause.message}` : "",
   );
 }

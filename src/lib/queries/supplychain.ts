@@ -26,7 +26,7 @@ export const MAINTAINER_BLAST_RADIUS = defineQuery({
     "a recursive CTE feeding a second join against a many-to-many table, materialising " +
     "the whole closure before it can group. Here the traversal and the pivot are the " +
     "same pattern.",
-  traversal: "0–8 hops down DEPENDS_ON, then 2 hops out via VERSION_OF and MAINTAINS",
+  traversal: "0-8 hops down DEPENDS_ON, then 2 hops out via VERSION_OF and MAINTAINS",
   parameters: [
     { name: "rootKey", description: "Version key to audit from", example: "express@4.17.1" },
     { name: "limit", description: "Maximum maintainers", example: "15" },
@@ -89,7 +89,7 @@ export const LICENSE_EXPOSURE = defineQuery({
     "through three packages you have never heard of is a discovery. Reporting the " +
     "shallowest depth per license requires the distance along the path, which only " +
     "exists once you have traversed it.",
-  traversal: "0–8 hops, keeping the minimum distance at which each license appears",
+  traversal: "0-8 hops, keeping the minimum distance at which each license appears",
   parameters: [
     { name: "rootKey", description: "Version key to audit from", example: "express@4.17.1" },
   ],
@@ -98,7 +98,7 @@ export const LICENSE_EXPOSURE = defineQuery({
 
     // The root is prepended rather than relying on a zero lower bound, because
     // CognoDB's shortestPath omits the zero-length path. Without this the
-    // package's OWN licence — the one most likely to matter — is missing from
+    // package's OWN licence - the one most likely to matter - is missing from
     // its own licence report.
     OPTIONAL MATCH path = shortestPath((root)-[:DEPENDS_ON*1..8]->(other:Version))
     WITH root, collect({ node: other, depth: length(path) }) AS others
@@ -120,7 +120,7 @@ export const LICENSE_EXPOSURE = defineQuery({
            shallowestDepth,
            packages[..8]       AS examples
     ORDER BY
-      // Most-restrictive obligations first — that is the order a reviewer cares about.
+      // Most-restrictive obligations first - that is the order a reviewer cares about.
       CASE license.category
         WHEN 'network-copyleft' THEN 0
         WHEN 'strong-copyleft'  THEN 1
@@ -175,7 +175,7 @@ export const DUPLICATE_VERSIONS = defineQuery({
     "package that appears twice in one tree is a grouping over the traversal result. " +
     "A schema that stored ranges could not answer it at all without re-running " +
     "resolution at query time.",
-  traversal: "0–8 hops, grouped by package name",
+  traversal: "0-8 hops, grouped by package name",
   parameters: [
     { name: "rootKey", description: "Version key to audit from", example: "express@4.17.1" },
   ],
@@ -226,9 +226,9 @@ export const BUS_FACTOR = defineQuery({
   title: "Dependencies with exactly one maintainer",
   question: "How much of what I install rests on a single person?",
   whyGraph:
-    "Same traversal as the blast-radius query, aggregated from the other direction — " +
+    "Same traversal as the blast-radius query, aggregated from the other direction - " +
     "packages with a maintainer count of one, anywhere in the closure.",
-  traversal: "0–8 hops down, then out to maintainers, filtered on degree",
+  traversal: "0-8 hops down, then out to maintainers, filtered on degree",
   parameters: [
     { name: "rootKey", description: "Version key to audit from", example: "express@4.17.1" },
     { name: "limit", description: "Maximum rows", example: "20" },

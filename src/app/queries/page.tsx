@@ -9,7 +9,7 @@ import { QUERY_CATALOG, QUERY_GROUPS, graphNativeCount, queriesInGroup } from "@
 import { getGraphStatistics } from "@/lib/queries/discovery";
 
 /**
- * "How it works" — the data model and every Cypher statement the app runs.
+ * "How it works" - the data model and every Cypher statement the app runs.
  *
  * This page reads {@link QUERY_CATALOG}, the same array the API and the Server
  * Components execute. It is not a written-up copy of the queries: it is the
@@ -32,7 +32,7 @@ export default function QueriesPage() {
       <SectionHeading
         eyebrow="How it works"
         title="The model, and every query that runs against it"
-        description="Understory holds no data of its own — every panel in the application is a live Cypher query against CognoDB. This page is generated from the same query catalog the application executes, so it cannot describe a query the app no longer runs."
+        description="Understory holds no data of its own - every panel in the application is a live Cypher query against CognoDB. This page is generated from the same query catalog the application executes, so it cannot describe a query the app no longer runs."
       />
 
       <Suspense fallback={<Skeleton className="h-20 w-full" />}>
@@ -56,15 +56,15 @@ export default function QueriesPage() {
           <Panel title="Why DEPENDS_ON connects versions, not packages">
             <div className="space-y-3 px-5 py-4 text-[13px] leading-relaxed text-[var(--color-ink-muted)]">
               <p>
-                A package.json records a <em>range</em> — <code className="font-mono text-[12px] text-[var(--color-ink)]">^4.17.0</code>{" "}
-                — but what lands on disk is one concrete version. If the graph stored
+                A package.json records a <em>range</em> - <code className="font-mono text-[12px] text-[var(--color-ink)]">^4.17.0</code>{" "}
+                - but what lands on disk is one concrete version. If the graph stored
                 package-to-package edges, the central question of this application would be
                 unanswerable: advisories apply to version ranges, so whether a path reaches
                 something vulnerable depends entirely on which version each edge resolved to.
               </p>
               <p>
                 So the seed script resolves every declared range with the same rule npm uses
-                — the highest published version satisfying it — and stores an edge between
+                - the highest published version satisfying it - and stores an edge between
                 two concrete <code className="font-mono text-[12px] text-[var(--color-ink)]">:Version</code> nodes,
                 keeping the declared range as a property. That is what makes the reachability
                 results truthful rather than approximate, and it is also what lets the tool
@@ -105,7 +105,7 @@ export default function QueriesPage() {
             <p className="mt-2 max-w-3xl text-[13.5px] leading-relaxed text-[var(--color-ink-muted)]">
               {QUERY_CATALOG.length} statements, of which {graphNative} make a specific claim
               about being better as a traversal than as a join. The other{" "}
-              {QUERY_CATALOG.length - graphNative} are ordinary lookups — a relational
+              {QUERY_CATALOG.length - graphNative} are ordinary lookups - a relational
               database would handle those perfectly well, and saying otherwise would be
               dishonest.
             </p>
@@ -132,7 +132,7 @@ export default function QueriesPage() {
                               {query.title}
                             </h4>
                             <p className="mt-1 text-[13px] italic leading-relaxed text-[var(--color-ink-muted)]">
-                              “{query.question}”
+                              "{query.question}"
                             </p>
                           </div>
                           <Badge className="shrink-0">{query.id}</Badge>
@@ -155,7 +155,7 @@ export default function QueriesPage() {
                       ) : (
                         <div className="border-b border-[var(--color-line)] px-5 py-2.5">
                           <p className="text-[12px] text-[var(--color-ink-faint)]">
-                            An indexed lookup. A relational database would do this identically —
+                            An indexed lookup. A relational database would do this identically -
                             no graph advantage claimed.
                           </p>
                         </div>
@@ -205,15 +205,15 @@ export default function QueriesPage() {
               None of the Cypher on this page is assembled at runtime. Statements are
               declared with a tagged template that throws on any interpolation, and they
               carry a branded type that a plain <code className="font-mono text-[12px] text-[var(--color-ink)]">string</code>{" "}
-              cannot satisfy — so the query executor accepts nothing else. An attempt to
+              cannot satisfy - so the query executor accepts nothing else. An attempt to
               build Cypher by concatenation fails at module load, not in production.
             </p>
             <p>
               Values reach the database as Bolt parameters, out of band from the statement
               text, where they cannot alter its structure. The one thing that genuinely
-              cannot be a parameter is a variable-length bound — Cypher rejects{" "}
+              cannot be a parameter is a variable-length bound - Cypher rejects{" "}
               <code className="font-mono text-[12px] text-[var(--color-ink)]">*1..$depth</code>{" "}
-              as a syntax error — so the traversal depths the interface offers exist as a
+              as a syntax error - so the traversal depths the interface offers exist as a
               small set of separate static statements chosen by an exhaustive switch.
             </p>
           </div>
@@ -255,7 +255,7 @@ async function StatsStrip() {
           ))}
         </div>
         <p className="mt-3 font-mono text-[11px] text-[var(--color-ink-faint)]">
-          counted live · {meta.consumedAfterMs} ms
+          counted live | {meta.consumedAfterMs} ms
         </p>
       </div>
     );

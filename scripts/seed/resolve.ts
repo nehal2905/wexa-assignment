@@ -19,8 +19,8 @@ import {
  *
  * `maxSatisfying` picks the highest published version inside the range, which is
  * what a fresh `npm install` with no lockfile produces. That is the honest
- * default for "what would I get today". It is not what a *locked* project gets —
- * a real audit tool would read package-lock.json — and the README says so
+ * default for "what would I get today". It is not what a *locked* project gets -
+ * a real audit tool would read package-lock.json - and the README says so
  * explicitly rather than pretending otherwise.
  *
  * ## Scope handling, matching npm's real behaviour
@@ -33,7 +33,7 @@ import {
  *    install.
  *  - `peerDependencies` are recorded as a count but not traversed. Peer ranges
  *    are intentionally wide (`>=16`), and following them pulls in whole
- *    framework trees that the consumer may already have deduplicated — the
+ *    framework trees that the consumer may already have deduplicated - the
  *    resulting edges would suggest a certainty the data does not support.
  */
 
@@ -54,7 +54,7 @@ export interface PackageRecord {
    * Seed-time rollups for root packages, used by the landing page.
    *
    * These are denormalised on purpose. Computing them live means running a
-   * transitive closure for every card on the page — thirty-one of them — and on
+   * transitive closure for every card on the page - thirty-one of them - and on
    * the CognoDB free tier (0.5 vCPU, ~5 s server-side query deadline) that query
    * does not finish. The index page therefore reads precomputed counts while
    * every detail page runs the traversal live.
@@ -71,8 +71,8 @@ export interface PackageRecord {
   /**
    * For roots: the version the crawl actually started from.
    *
-   * A package can appear in the graph at several versions at once — that is the
-   * whole point of resolving ranges — so "the root version of express" is not
+   * A package can appear in the graph at several versions at once - that is the
+   * whole point of resolving ranges - so "the root version of express" is not
    * recoverable by picking its newest `:Version` node. Recording it explicitly
    * is what lets the UI open the right starting point.
    */
@@ -91,7 +91,7 @@ export interface VersionRecord {
   deprecated: string | null;
   unpackedSize: number | null;
   fileCount: number | null;
-  /** Count of declared peer dependencies — recorded, but not traversed. */
+  /** Count of declared peer dependencies - recorded, but not traversed. */
   peerDependencyCount: number;
 }
 
@@ -118,12 +118,12 @@ export interface CrawlResult {
   versions: Map<string, VersionRecord>;
   dependsOn: DependsOnRecord[];
   licenses: Map<string, LicenseRecord>;
-  /** versionKey → SPDX id */
+  /** versionKey -> SPDX id */
   licensedUnder: Array<{ versionKey: string; spdxId: string }>;
   maintainers: Map<string, MaintainerRecord>;
-  /** username → package name */
+  /** username -> package name */
   maintains: Array<{ username: string; packageName: string }>;
-  /** versionKey → username of whoever pushed that release */
+  /** versionKey -> username of whoever pushed that release */
   publishedBy: Array<{ versionKey: string; username: string }>;
   stats: CrawlStats;
 }
@@ -252,7 +252,7 @@ export async function crawl(options: CrawlOptions): Promise<CrawlResult> {
   const publishedBy: Array<{ versionKey: string; username: string }> = [];
 
   const snapshots = new Map<string, PackageSnapshot | null>();
-  /** `${name}|${range}` → versionKey, so an identical range is resolved once. */
+  /** `${name}|${range}` -> versionKey, so an identical range is resolved once. */
   const resolutionCache = new Map<string, string | null>();
   const expanded = new Set<string>();
 
@@ -356,7 +356,7 @@ export async function crawl(options: CrawlOptions): Promise<CrawlResult> {
 
   /**
    * Resolves `name@range` to a concrete version key, registering the package and
-   * version records on the way. Memoised — the same range appears hundreds of
+   * version records on the way. Memoised - the same range appears hundreds of
    * times across a large tree.
    */
   async function resolve(name: string, range: string): Promise<string | null> {
@@ -399,7 +399,7 @@ export async function crawl(options: CrawlOptions): Promise<CrawlResult> {
 
   /* --- Breadth-first expansion, one depth level at a time ----------------- */
 
-  onProgress?.(`Resolving ${roots.length} root packages…`);
+  onProgress?.(`Resolving ${roots.length} root packages...`);
 
   let frontier: string[] = [];
   const rootKeys = await Promise.all(
@@ -422,7 +422,7 @@ export async function crawl(options: CrawlOptions): Promise<CrawlResult> {
     stats.maxDepthReached = depth;
     onProgress?.(
       `Depth ${depth}: expanding ${frontier.length} versions ` +
-        `(${packages.size} packages, ${dependsOn.length} edges so far)…`,
+        `(${packages.size} packages, ${dependsOn.length} edges so far)...`,
     );
 
     const nextFrontier = new Set<string>();
@@ -442,7 +442,7 @@ export async function crawl(options: CrawlOptions): Promise<CrawlResult> {
           const { edges } = collectDependencies(
             snapshot,
             record.version,
-            // devDependencies only from a root — see the note at the top.
+            // devDependencies only from a root - see the note at the top.
             depth === 0 && rootByName.has(record.packageName),
           );
 

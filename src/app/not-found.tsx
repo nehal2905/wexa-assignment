@@ -17,17 +17,17 @@ export default function NotFound() {
       </p>
 
       <h1 className="mt-3 text-2xl font-semibold tracking-tight">
-        That package isn&rsquo;t in the dataset
+        That package isn't in the dataset
       </h1>
 
       <p className="mx-auto mt-3 max-w-md text-[13.5px] leading-relaxed text-[var(--color-ink-muted)]">
-        Understory holds a seeded slice of the npm registry — roughly eighteen hundred
+        Understory holds a seeded slice of the npm registry - roughly eighteen hundred
         packages crawled outward from a set of well-known projects, not all two million.
         Plenty of perfectly real packages are legitimately absent.
       </p>
 
       <div className="mt-8">
-        <PackageSearch placeholder="Try another package…" />
+        <PackageSearch placeholder="Try another package..." />
       </div>
 
       <Link

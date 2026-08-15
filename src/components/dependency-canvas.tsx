@@ -28,7 +28,7 @@ import type { GraphEdge, GraphNode } from "@/lib/queries/tree";
  * Canvas draws the same frame as a flat list of primitives and stays smooth.
  *
  * The layout comes from `d3-force`, which is the part genuinely worth a
- * dependency — a well-tuned velocity Verlet integrator is not something to
+ * dependency - a well-tuned velocity Verlet integrator is not something to
  * reimplement. Everything above it (rendering, hit-testing, zoom, pan, hover) is
  * about a hundred and fifty lines here, versus pulling in a graph-rendering
  * library whose abstractions would have to be worked around to get the severity
@@ -39,7 +39,7 @@ import type { GraphEdge, GraphNode } from "@/lib/queries/tree";
  * The `forceX` pass is what makes this readable. Without it a dependency graph
  * relaxes into an undifferentiated hairball; pinning each node toward a column
  * determined by its depth from the root turns it into something with a reading
- * direction — your package on the left, the things it drags in receding to the
+ * direction - your package on the left, the things it drags in receding to the
  * right.
  */
 
@@ -98,7 +98,7 @@ export function DependencyCanvas({
    *
    * Without this the layout is only accidentally visible. A 440-node tree spread
    * over four depth columns puts roughly a hundred nodes in each, and a hundred
-   * nodes at collision spacing need far more vertical room than the canvas has —
+   * nodes at collision spacing need far more vertical room than the canvas has -
    * so the columns overflow and the root, pinned to the far left, ends up
    * off-screen. The user is then looking at the middle of a graph with no idea
    * where their own package is.
@@ -194,7 +194,7 @@ export function DependencyCanvas({
      *
      * The depth force is deliberately the strongest thing here. Left to
      * themselves, charge and link forces relax a dependency graph into an even
-     * blob — technically a valid layout, and useless to look at, because the
+     * blob - technically a valid layout, and useless to look at, because the
      * one piece of structure that matters (how far a package is from you) is
      * exactly what gets averaged away.
      *
@@ -234,14 +234,14 @@ export function DependencyCanvas({
      * repainting after each tick so the graph is seen relaxing. That looks
      * pleasant and costs a surprising amount: the component has to track when
      * the layout is "done", the render loop has to keep running until it is, and
-     * every consumer of the final positions — auto-fit, in particular — has to
+     * every consumer of the final positions - auto-fit, in particular - has to
      * wait for an event that may never arrive if a tick is dropped or the tab is
      * backgrounded.
      *
      * Running the ticks in a loop instead gives the finished layout immediately.
      * The standard formula below is the number of iterations d3 would have run
      * anyway before alpha decayed past its floor, so the result is identical to
-     * the animated version — just without the intermediate frames, the timing
+     * the animated version - just without the intermediate frames, the timing
      * dependency, and the class of bugs that comes with them.
      *
      * For a few hundred nodes this is a few hundred milliseconds, once, on a
@@ -279,7 +279,7 @@ export function DependencyCanvas({
     const width = wrapper.clientWidth;
     const ratio = window.devicePixelRatio || 1;
 
-    // Resize only when it actually changed — assigning to canvas.width clears
+    // Resize only when it actually changed - assigning to canvas.width clears
     // the buffer, so doing it every frame would flicker.
     if (canvas.width !== Math.floor(width * ratio) || canvas.height !== Math.floor(height * ratio)) {
       canvas.width = Math.floor(width * ratio);
@@ -329,7 +329,7 @@ export function DependencyCanvas({
           ? "rgba(44, 50, 57, 0.28)"
           : "rgba(44, 50, 57, 0.75)";
       context.lineWidth = isTouching ? 1.4 : 0.8;
-      // devDependency edges are drawn dashed — the distinction between "ships to
+      // devDependency edges are drawn dashed - the distinction between "ships to
       // production" and "only present while developing" is the single most
       // important thing on this canvas.
       context.setLineDash(link.scope === "dev" ? [3, 3] : []);
@@ -432,14 +432,14 @@ export function DependencyCanvas({
    * repainting a canvas nobody is looking at.
    *
    * Settling is derived from the simulation's own alpha rather than its `end`
-   * event. The event fires once, and anything that misses it — a re-mount, a
-   * `restart()` from an interaction — leaves the loading indicator stuck on
+   * event. The event fires once, and anything that misses it - a re-mount, a
+   * `restart()` from an interaction - leaves the loading indicator stuck on
    * screen forever. Reading alpha each frame is always correct.
    */
   /**
    * Paint-on-demand.
    *
-   * Because the layout is solved up front, there is no animation to drive — the
+   * Because the layout is solved up front, there is no animation to drive - the
    * canvas only needs repainting when something the user did changes what should
    * be on it: hovering, panning, zooming, or re-fitting. Each of those calls
    * `requestDraw`, which coalesces into at most one paint per frame.
@@ -475,7 +475,7 @@ export function DependencyCanvas({
   /* Interaction                                                             */
   /* ---------------------------------------------------------------------- */
 
-  /** Screen coordinates → simulation coordinates, undoing the view transform. */
+  /** Screen coordinates -> simulation coordinates, undoing the view transform. */
   const toGraphSpace = useCallback((clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     if (canvas === null) return null;
@@ -587,7 +587,7 @@ export function DependencyCanvas({
             fit to view
           </button>
           <span className="pointer-events-none rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)]/90 px-2.5 py-1.5 text-[11px] text-[var(--color-ink-faint)]">
-            scroll to zoom · drag to pan · click a node to open it
+            scroll to zoom | drag to pan | click a node to open it
           </span>
         </div>
       </div>
@@ -623,7 +623,7 @@ function NodeTooltip({ node }: { node: SimNode }) {
       {node.vulnerabilityCount > 0 && (
         <p className="mt-1 text-[11px]" style={{ color: SEVERITY_HEX[node.worst ?? "UNKNOWN"] }}>
           {node.vulnerabilityCount} advisor{node.vulnerabilityCount === 1 ? "y" : "ies"}
-          {node.worst !== null && ` · worst ${node.worst.toLowerCase()}`}
+          {node.worst !== null && ` | worst ${node.worst.toLowerCase()}`}
         </p>
       )}
       {node.deprecated && (

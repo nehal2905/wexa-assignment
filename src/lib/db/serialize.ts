@@ -18,10 +18,10 @@ import {
 } from "neo4j-driver";
 
 /**
- * Bolt → JSON.
+ * Bolt -> JSON.
  *
- * The driver returns rich types — 64-bit `Integer`, `Node`, `Relationship`,
- * `Path`, temporal and spatial values — none of which survive `JSON.stringify`
+ * The driver returns rich types - 64-bit `Integer`, `Node`, `Relationship`,
+ * `Path`, temporal and spatial values - none of which survive `JSON.stringify`
  * in a form the browser can use. `Integer` in particular stringifies to
  * `{"low":3,"high":0}`, which is a classic source of "why is my count an
  * object?" bugs.
@@ -55,7 +55,7 @@ export interface PlainPath {
  * Narrows a 64-bit Bolt integer to a JS number.
  *
  * Everything this application stores in an integer field is a count, a depth, a
- * byte size, or a millisecond timestamp — all comfortably inside
+ * byte size, or a millisecond timestamp - all comfortably inside
  * `Number.MAX_SAFE_INTEGER`. We still check rather than assume: silently losing
  * precision is worse than a loud failure, and the check costs nothing.
  */

@@ -10,7 +10,7 @@
  *     "what do these two packages share?" comparison meaningful.
  *
  *  2. **Some roots are pinned to older versions, on purpose.** If every root
- *     resolved to `latest`, the vulnerability views would mostly render empty —
+ *     resolved to `latest`, the vulnerability views would mostly render empty -
  *     maintainers do their job, and the current release of a popular package
  *     usually has a clean tree. Pinning a handful to versions people really are
  *     still running (the `express@4.17.1` in a 2019 Dockerfile, the
@@ -71,7 +71,7 @@ export const ROOT_PACKAGES: readonly RootPackage[] = [
     version: "3.9.1",
     category: "Build tooling",
     blurb: "Streaming build system.",
-    pinnedBecause: "The last 3.x release — abandoned in 2018 and still present in many legacy repos.",
+    pinnedBecause: "The last 3.x release - abandoned in 2018 and still present in many legacy repos.",
   },
 
   /* --- HTTP clients ------------------------------------------------------ */
@@ -80,7 +80,7 @@ export const ROOT_PACKAGES: readonly RootPackage[] = [
     version: "0.21.0",
     category: "HTTP clients",
     blurb: "Promise-based HTTP client.",
-    pinnedBecause: "Predates the 0.21.1 SSRF fix — a well-documented real-world advisory.",
+    pinnedBecause: "Predates the 0.21.1 SSRF fix - a well-documented real-world advisory.",
   },
   {
     name: "request",

@@ -5,7 +5,7 @@ import type { Severity } from "@/lib/graph/model";
 import { defineQuery } from "./define";
 
 /**
- * Vulnerability reachability — the queries this whole application exists for.
+ * Vulnerability reachability - the queries this whole application exists for.
  *
  * The question a dependency audit actually needs answered is not "does this
  * package have a CVE" but "is there a route from the thing I ship to something
@@ -20,7 +20,7 @@ const ALL_SEVERITIES: Severity[] = ["CRITICAL", "HIGH", "MODERATE", "LOW", "UNKN
  *
  * This distinction is not cosmetic, and getting it wrong is how dependency
  * scanners earn their reputation for crying wolf. `express@4.17.1` reaches a
- * critical remote-code-execution advisory in `handlebars` — but only through
+ * critical remote-code-execution advisory in `handlebars` - but only through
  * `hbs`, which is one of express's *devDependencies*. It is used to run
  * express's own test suite. It is never installed into your application and
  * never reaches production.
@@ -30,8 +30,8 @@ const ALL_SEVERITIES: Severity[] = ["CRITICAL", "HIGH", "MODERATE", "LOW", "UNKN
  * on a maintainer's laptop and in CI. So both views exist and the UI makes the
  * active one obvious:
  *
- *  - `production` — only `prod` and `optional` edges. What you actually ship.
- *  - `all`        — includes `dev` edges. What a contributor's machine installs.
+ *  - `production` - only `prod` and `optional` edges. What you actually ship.
+ *  - `all`        - includes `dev` edges. What a contributor's machine installs.
  */
 export type ReachabilityScope = "production" | "all";
 
@@ -53,7 +53,7 @@ export const VULNERABILITY_PATHS = defineQuery({
     "down. Cypher expresses the same thing as shortestPath over a variable-length " +
     "pattern, and hands back the path as a first-class value that we can read the " +
     "hops straight out of.",
-  traversal: "0–8 hops, shortest path per (advisory, affected version) pair",
+  traversal: "0-8 hops, shortest path per (advisory, affected version) pair",
   parameters: [
     { name: "rootKey", description: "Version key to audit from", example: "express@4.17.1" },
     {
@@ -79,7 +79,7 @@ export const VULNERABILITY_PATHS = defineQuery({
     // The lower bound is 1, and the root is handled as its own case below,
     // because CognoDB's shortestPath does not return a zero-length path. With
     // *0..8 an advisory affecting the audited package itself would simply not
-    // appear — silent under-reporting, in the one place it matters most.
+    // appear - silent under-reporting, in the one place it matters most.
     OPTIONAL MATCH found = shortestPath((root)-[:DEPENDS_ON*1..8]->(target))
     WITH root, target, CASE WHEN target = root THEN null ELSE found END AS path
     WHERE path IS NOT NULL OR target = root
@@ -147,7 +147,7 @@ export interface VulnerabilityPath {
  * afterwards, and the difference matters: `shortestPath` returns *the* shortest
  * route, so filtering after the fact would discard a package whose shortest
  * route happens to run through a dev edge even when a longer production route
- * also exists — a false negative, which is the worst kind of bug a security tool
+ * also exists - a false negative, which is the worst kind of bug a security tool
  * can have. Putting `ALL(...)` inside the shortestPath's own WHERE lets the
  * planner evaluate the predicate during expansion, so it finds the shortest path
  * that satisfies the constraint.
@@ -159,14 +159,14 @@ const VULNERABILITY_PATHS_PRODUCTION = cypher`
   //
   // There are roughly three and a half advisory edges per affected version, so
   // driving path-finding straight off AFFECTS runs shortestPath ~460 times
-  // instead of ~135 — the same answer at three times the cost. On the free tier
+  // instead of ~135 - the same answer at three times the cost. On the free tier
   // that was the difference between comfortably inside the query deadline and
   // sitting right on it. Advisories are re-attached after the paths are known.
   MATCH (:Vulnerability)-[:AFFECTS]->(candidate:Version)
   WITH root, collect(DISTINCT candidate) AS candidates
   UNWIND candidates AS target
 
-  // Lower bound of 1 with the root handled separately — see the note on
+  // Lower bound of 1 with the root handled separately - see the note on
   // VULNERABILITY_PATHS. An advisory on the audited package itself is always
   // in production scope, since reaching it requires no dependency edge at all.
   OPTIONAL MATCH found = shortestPath((root)-[:DEPENDS_ON*1..8]->(target))
@@ -240,7 +240,7 @@ export async function getVulnerabilityPaths(
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2. Chokepoints — the actionable one                                         */
+/* 2. Chokepoints - the actionable one                                         */
 /* -------------------------------------------------------------------------- */
 
 export const UPGRADE_CHOKEPOINTS = defineQuery({
@@ -250,12 +250,12 @@ export const UPGRADE_CHOKEPOINTS = defineQuery({
   question:
     "I can only fix one thing today. Which of my direct dependencies sits between me and the most vulnerabilities?",
   whyGraph:
-    "The answer is not a property of any package — it is a property of the routes " +
+    "The answer is not a property of any package - it is a property of the routes " +
     "through it. We take the first hop of every vulnerability path and group by it, " +
     "which asks 'how much risk flows through this node'. There is no column anywhere " +
     "that holds this; it only exists once the paths have been computed, and computing " +
     "them is the part SQL cannot do cheaply.",
-  traversal: "1–8 hops; groups every path by its first hop",
+  traversal: "1-8 hops; groups every path by its first hop",
   parameters: [
     { name: "rootKey", description: "Version key to audit from", example: "express@4.17.1" },
     { name: "limit", description: "Maximum rows", example: "10" },
@@ -266,7 +266,7 @@ export const UPGRADE_CHOKEPOINTS = defineQuery({
 
     // shortestPath throws if its endpoints are the same node, and the root can
     // itself be one of the vulnerable versions. Filtering target before the
-    // path-finding runs is what keeps that from being an error — and it is also
+    // path-finding runs is what keeps that from being an error - and it is also
     // the right answer: if the root is the vulnerable package, there is no
     // intermediate dependency to upgrade, so it does not belong in this ranking.
     WHERE target <> root
@@ -304,7 +304,7 @@ export interface Chokepoint {
   examples: string[];
 }
 
-/** Production-only chokepoints — see the note on VULNERABILITY_PATHS_PRODUCTION. */
+/** Production-only chokepoints - see the note on VULNERABILITY_PATHS_PRODUCTION. */
 const UPGRADE_CHOKEPOINTS_PRODUCTION = cypher`
   MATCH (root:Version { key: $rootKey })
 

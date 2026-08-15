@@ -7,8 +7,8 @@
  * to violate six months later when someone needs a dynamic label. Rather than
  * rely on discipline, this module makes the unsafe thing not compile:
  *
- *  - {@link Cypher} is a *branded* string. A plain `string` — including any
- *    result of `+` or of an interpolated template literal — is not assignable
+ *  - {@link Cypher} is a *branded* string. A plain `string` - including any
+ *    result of `+` or of an interpolated template literal - is not assignable
  *    to it.
  *  - The only way to produce a `Cypher` is the {@link cypher} tagged template,
  *    which throws at module-load time if the template had any `${...}`
@@ -57,7 +57,7 @@ export function cypher(strings: TemplateStringsArray, ...values: unknown[]): Cyp
  * happily accept `undefined` and turn it into a silent `null` mismatch, which
  * produces empty result sets that look like real "no data" answers.
  *
- * `Integer` is in the union because of a sharp edge in the Bolt type system —
+ * `Integer` is in the union because of a sharp edge in the Bolt type system -
  * see {@link int}.
  */
 export type ParamValue =
@@ -78,11 +78,11 @@ export type Params = Readonly<Record<string, ParamValue>>;
  *
  * JavaScript has one number type; Bolt has two. The driver cannot tell whether
  * `10` means the integer 10 or the float 10.0, so it sends every plain number as
- * a FLOAT. Most of the time that is harmless — but a handful of Cypher
+ * a FLOAT. Most of the time that is harmless - but a handful of Cypher
  * constructs are strict about it, and `LIMIT` is the one you hit first:
  *
  *     LIMIT $limit   with { limit: 10 }
- *     → "LIMIT: Invalid input. '10.0' is not a valid value."
+ *     -> "LIMIT: Invalid input. '10.0' is not a valid value."
  *
  * The same applies to any integer-valued property being written: a download
  * count stored as `1.234e7` is not just cosmetically wrong, it sorts and
@@ -111,7 +111,7 @@ export function assertNoUndefinedParams(params: Params, statementName: string): 
     if (value === undefined) {
       throw new Error(
         `Query "${statementName}" was given \`undefined\` for parameter $${key}. ` +
-          `Cypher has no undefined — pass null explicitly if that is what you mean.`,
+          `Cypher has no undefined - pass null explicitly if that is what you mean.`,
       );
     }
   }

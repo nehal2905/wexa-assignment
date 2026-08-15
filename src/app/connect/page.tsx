@@ -23,7 +23,7 @@ import { findConnectionPath, getDependents } from "@/lib/queries/compare";
  *
  * Everyone who has opened a lockfile has asked this. Nothing in your
  * package.json mentions `ms`, and yet there it is. The answer is a shortest path
- * — one Cypher function against a graph, versus a hand-written breadth-first
+ * - one Cypher function against a graph, versus a hand-written breadth-first
  * search in a recursive CTE against a relational one.
  */
 export const dynamic = "force-dynamic";
@@ -58,7 +58,7 @@ export default async function ConnectPage({ searchParams }: PageProps) {
         {from === null || to === null ? (
           <div className="surface-card">
             <EmptyState
-              icon="→"
+              icon=">"
               title="Pick both ends"
               description="Choose a package you know you installed, and one you did not expect to find."
               action={
@@ -73,7 +73,7 @@ export default async function ConnectPage({ searchParams }: PageProps) {
                       href={`/connect?from=${a}&to=${b}`}
                       className="rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-surface)] px-3 py-1.5 font-mono text-[12px] text-[var(--color-ink-muted)] transition-colors hover:border-[var(--color-accent-dim)] hover:text-[var(--color-accent)]"
                     >
-                      {a} → {b}
+                      {a} {'->'} {b}
                     </Link>
                   ))}
                 </div>
@@ -81,7 +81,7 @@ export default async function ConnectPage({ searchParams }: PageProps) {
             />
           </div>
         ) : (
-          <Suspense key={`${from}-${to}`} fallback={<PanelSkeleton title="Searching…" rows={3} />}>
+          <Suspense key={`${from}-${to}`} fallback={<PanelSkeleton title="Searching..." rows={3} />}>
             <PathResult from={from} to={to} />
           </Suspense>
         )}
@@ -107,9 +107,9 @@ async function PathResult({ from, to }: { from: string; to: string }) {
         >
           {route === undefined ? (
             <EmptyState
-              icon="⌀"
+              icon="x"
               title="No route between them"
-              description={`Nothing in ${from}'s dependency tree reaches ${to} within ten hops. They are genuinely unrelated in this dataset — which is itself a useful answer.`}
+              description={`Nothing in ${from}'s dependency tree reaches ${to} within ten hops. They are genuinely unrelated in this dataset - which is itself a useful answer.`}
             />
           ) : (
             <div className="px-5 py-5">
@@ -184,7 +184,7 @@ async function PathResult({ from, to }: { from: string; to: string }) {
         >
           {dependents.rows.length === 0 ? (
             <EmptyState
-              icon="○"
+              icon="o"
               title="Nothing depends on it here"
               description={`No package in this graph reaches ${to} within five hops.`}
             />

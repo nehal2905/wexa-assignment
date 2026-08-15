@@ -7,12 +7,12 @@ import { fail, heading, ok, style, table } from "./cli";
  *   npm run db:check
  *
  * The first thing to run after filling in `.env.local`, and the first thing to
- * run when something looks wrong. It reports *why* a connection failed —
- * unreachable host, rejected credentials, wrong database name — rather than
+ * run when something looks wrong. It reports *why* a connection failed -
+ * unreachable host, rejected credentials, wrong database name - rather than
  * leaving you to infer it from a driver stack trace.
  */
 async function main(): Promise<void> {
-  heading("Understory · connection check");
+  heading("Understory | connection check");
 
   const health = await checkHealth();
 

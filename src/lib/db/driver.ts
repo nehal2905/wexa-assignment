@@ -11,7 +11,7 @@ import { intToNumber } from "./serialize";
  * ## Why a module-level singleton
  *
  * A `Driver` is a connection *pool*, not a connection. Creating one per request
- * would open a fresh TCP+TLS handshake every time — on a serverless platform
+ * would open a fresh TCP+TLS handshake every time - on a serverless platform
  * that is both slow and a fast route to exhausting the free tier's 200-connection
  * ceiling. One driver per process, reused across warm invocations, is the
  * documented pattern.
@@ -36,7 +36,7 @@ const DEFAULT_QUERY_TIMEOUT_MS = 15_000;
  * Reads a server-reported timing from a result summary.
  *
  * `resultAvailableAfter` and `resultConsumedAfter` are optional in the Bolt
- * protocol, and not every openCypher server populates them — CognoDB does not.
+ * protocol, and not every openCypher server populates them - CognoDB does not.
  * Treating them as guaranteed makes the *timing display* capable of failing the
  * *query*, which is exactly backwards: an unreported duration is a missing nicety,
  * not an error. Returns -1 when the server did not say, which the UI renders as
@@ -115,7 +115,7 @@ export interface QueryOutcome<T> {
 }
 
 export interface ReadArgs<T> {
-  /** Must come from the query catalog — see `db/cypher.ts` for why. */
+  /** Must come from the query catalog - see `db/cypher.ts` for why. */
   statement: Cypher;
   params: Params;
   /** Row mapper. Runs inside the session so we never leak driver types outward. */

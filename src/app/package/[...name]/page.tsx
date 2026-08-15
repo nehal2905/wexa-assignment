@@ -33,7 +33,7 @@ import { getDependencyGraph, getPackageOverview, type GraphDepth } from "@/lib/q
  *
  * Every panel is a Server Component that calls the query layer directly. There
  * is no `/api/packages/...` route, no client-side fetch, and no loading
- * waterfall — the browser receives HTML with the answers already in it.
+ * waterfall - the browser receives HTML with the answers already in it.
  *
  * The filters (production vs including-dev, and traversal depth) are plain links
  * that change the URL's search parameters, which re-runs the server render. That
@@ -50,7 +50,7 @@ export const dynamic = "force-dynamic";
 /**
  * A catch-all segment, not a single one.
  *
- * Scoped package names contain a slash — `@babel/core` — and a slash is a path
+ * Scoped package names contain a slash - `@babel/core` - and a slash is a path
  * separator, not a character that survives a single dynamic segment.
  * Percent-encoding it as `%2F` does not help: servers and proxies routinely
  * reject or normalise an encoded slash before the framework ever sees it. A
@@ -98,7 +98,7 @@ export default async function PackagePage({ params, searchParams }: PageProps) {
   const scope = parseScope(query.scope);
   const depth = parseDepth(query.depth);
 
-  // Resolve which stored version to show before anything else — the rest of the
+  // Resolve which stored version to show before anything else - the rest of the
   // page is keyed off it.
   //
   // `notFound()` is called *outside* the try/catch on purpose. It signals a 404
@@ -278,7 +278,7 @@ async function PackageHeader({
           )}
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-[var(--color-ink-faint)]">
-            <span>published {monthYear(overview.publishedAt)}{age !== null && ` · ${age}`}</span>
+            <span>published {monthYear(overview.publishedAt)}{age !== null && ` | ${age}`}</span>
             {overview.license !== null && <span>licence {overview.license}</span>}
             {overview.unpackedSize !== null && <span>{fileSize(overview.unpackedSize)} unpacked</span>}
             {overview.repository !== null && (
@@ -293,7 +293,7 @@ async function PackageHeader({
             )}
           </div>
 
-          {/* Honesty notices — the reader should never be misled about what
+          {/* Honesty notices - the reader should never be misled about what
               version they are looking at or why. */}
           <div className="mt-3 flex flex-col gap-2">
             {overview.pinnedBecause !== null && (
@@ -304,7 +304,7 @@ async function PackageHeader({
             )}
             {overview.deprecated !== null && (
               <Notice tone="warn">
-                Deprecated by its maintainer: “{overview.deprecated}”
+                Deprecated by its maintainer: "{overview.deprecated}"
               </Notice>
             )}
             {isOutdated && overview.pinnedBecause === null && (
@@ -351,7 +351,7 @@ async function PackageHeader({
           hint={
             overview.vulnerabilityCount === 0
               ? "none in the tree"
-              : `${overview.criticalCount} critical · ${overview.highCount} high`
+              : `${overview.criticalCount} critical | ${overview.highCount} high`
           }
         />
         <Stat
@@ -487,7 +487,7 @@ async function GraphPanel({
     return (
       <Panel
         title="The tree itself"
-        description="Every resolved version reachable from this package, laid out left to right by distance from it. Vulnerable packages are coloured by severity. This view always shows the whole tree — dev-only dependencies appear on dashed edges rather than being hidden."
+        description="Every resolved version reachable from this package, laid out left to right by distance from it. Vulnerable packages are coloured by severity. This view always shows the whole tree - dev-only dependencies appear on dashed edges rather than being hidden."
         aside={<DepthToggle current={current} />}
       >
         <div className="p-4">

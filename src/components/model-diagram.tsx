@@ -41,22 +41,22 @@ export function GraphModelDiagram() {
 
       {/* --- Edges (drawn first so nodes sit on top) ---------------------- */}
 
-      {/* Maintainer → Package */}
+      {/* Maintainer -> Package */}
       <Edge x1={168} y1={92} x2={352} y2={92} label="MAINTAINS" />
 
-      {/* Version → Package */}
+      {/* Version -> Package */}
       <Edge x1={430} y1={210} x2={430} y2={126} label="VERSION_OF" labelDx={54} />
 
-      {/* Version → Maintainer (published by) */}
+      {/* Version -> Maintainer (published by) */}
       <Edge x1={352} y1={236} x2={168} y2={122} label="PUBLISHED_BY" labelDy={-8} />
 
-      {/* Version → License */}
+      {/* Version -> License */}
       <Edge x1={352} y1={262} x2={186} y2={330} label="LICENSED_UNDER" labelDy={20} />
 
-      {/* Vulnerability → Version */}
+      {/* Vulnerability -> Version */}
       <Edge x1={676} y1={330} x2={510} y2={268} label="AFFECTS" labelDy={20} />
 
-      {/* Version → Version, the self-referential dependency edge */}
+      {/* Version -> Version, the self-referential dependency edge */}
       <path
         d="M 512 232 C 590 210, 596 268, 516 254"
         fill="none"
@@ -88,7 +88,7 @@ export function GraphModelDiagram() {
         y={68}
         width={128}
         label="Maintainer"
-        fields={["username ◆", "email"]}
+        fields={["username *", "email"]}
       />
 
       <Node
@@ -96,7 +96,7 @@ export function GraphModelDiagram() {
         y={56}
         width={156}
         label="Package"
-        fields={["name ◆", "description", "weeklyDownloads", "isRoot"]}
+        fields={["name *", "description", "weeklyDownloads", "isRoot"]}
       />
 
       <Node
@@ -105,7 +105,7 @@ export function GraphModelDiagram() {
         width={160}
         label="Version"
         accent
-        fields={["key ◆", "version", "publishedAt", "deprecated"]}
+        fields={["key *", "version", "publishedAt", "deprecated"]}
       />
 
       <Node
@@ -113,7 +113,7 @@ export function GraphModelDiagram() {
         y={306}
         width={128}
         label="License"
-        fields={["spdxId ◆", "category"]}
+        fields={["spdxId *", "category"]}
       />
 
       <Node
@@ -121,13 +121,13 @@ export function GraphModelDiagram() {
         y={306}
         width={156}
         label="Vulnerability"
-        fields={["id ◆", "severity", "cvssScore", "summary"]}
+        fields={["id *", "severity", "cvssScore", "summary"]}
       />
 
       {/* --- Key ---------------------------------------------------------- */}
 
       <text x={40} y={402} className="fill-[var(--color-ink-faint)] font-mono text-[10.5px]">
-        ◆ uniqueness constraint · the accented node and edge carry the resolved dependency tree
+        * uniqueness constraint | the accented node and edge carry the resolved dependency tree
       </text>
     </svg>
   );

@@ -8,7 +8,7 @@ import { useState, useTransition } from "react";
  *
  * `router.refresh()` re-runs the server render for the current route without a
  * full document reload, so the whole app shell, fonts and client state survive
- * — and if the database has come back, the page simply fills in. `useTransition`
+ * - and if the database has come back, the page simply fills in. `useTransition`
  * gives us a real pending state, which matters here: a retry against a database
  * that is still down takes as long as the connection timeout, and a button that
  * looks inert for fifteen seconds reads as broken.
@@ -35,7 +35,7 @@ export function RetryButton() {
             className="h-3 w-3 animate-spin rounded-full border-2 border-[#04110c]/30 border-t-[#04110c]"
           />
         )}
-        {isPending ? "Reconnecting…" : "Try again"}
+        {isPending ? "Reconnecting..." : "Try again"}
       </button>
 
       {attempts > 0 && !isPending && (

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const limit = optionalInteger(params, "limit", 8, { min: 1, max: 25 });
 
     // A single character matches most of the graph and is never a useful
-    // result set — answer immediately rather than making the database scan.
+    // result set - answer immediately rather than making the database scan.
     if (term.length < 2) {
       return { results: [], term, tookMs: 0 };
     }

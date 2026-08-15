@@ -7,7 +7,7 @@ import { createLimiter, fetchJson, HttpError, readCache, writeCache } from "./ht
  * full metadata, in one document. For popular packages that is several megabytes,
  * and we need only a small slice of it. So each packument is fetched once,
  * immediately reduced to the {@link PackageSnapshot} below, and the raw document
- * is discarded — only the reduction is cached. Holding 900 raw packuments in
+ * is discarded - only the reduction is cached. Holding 900 raw packuments in
  * memory would be gigabytes; holding 900 snapshots is a few tens of megabytes.
  */
 
@@ -160,7 +160,7 @@ function normalisePerson(person: RawPerson | undefined): {
 
 /**
  * A dependency map must be an object of `name -> range` strings. Anything else
- * (a string, an array, `null`) is discarded — iterating a string with
+ * (a string, an array, `null`) is discarded - iterating a string with
  * `Object.entries` yields character indices, which would produce nonsense
  * package names rather than an error.
  */
@@ -227,7 +227,7 @@ function encodePackageName(name: string): string {
 
 /**
  * Fetches and reduces a packument. Returns null for packages that do not exist
- * (unpublished, renamed, or typo'd in someone's package.json — all of which
+ * (unpublished, renamed, or typo'd in someone's package.json - all of which
  * occur in real dependency trees and none of which should abort a seed run).
  */
 export async function getPackageSnapshot(name: string): Promise<PackageSnapshot | null> {

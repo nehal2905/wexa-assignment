@@ -10,7 +10,7 @@ import { dirname, resolve } from "node:path";
  * APIs; without caching, every iteration on the loader or the data model would
  * re-download tens of megabytes and re-hammer registry.npmjs.org. With it, a
  * second run is effectively instant and entirely offline. The cache lives in
- * `scripts/seed/.cache/` and is gitignored — it is derived data, regenerable at
+ * `scripts/seed/.cache/` and is gitignored - it is derived data, regenerable at
  * any time by deleting the directory.
  */
 
@@ -39,7 +39,7 @@ export class HttpError extends Error {
 /* -------------------------------------------------------------------------- */
 
 function cachePath(namespace: string, key: string): string {
-  // Package names contain `/`, `@`, and `.` — none of which are safe as path
+  // Package names contain `/`, `@`, and `.` - none of which are safe as path
   // segments on every platform. Hash for a flat, collision-resistant filename,
   // and keep a readable prefix so the cache is browsable during debugging.
   const digest = createHash("sha256").update(key).digest("hex").slice(0, 16);
@@ -58,7 +58,7 @@ export function readCache<T>(namespace: string, key: string): T | null {
     if (parsed.version !== CACHE_VERSION) return null;
     return (parsed.value ?? null) as T | null;
   } catch {
-    // A truncated or corrupt cache entry is not worth reporting — just refetch.
+    // A truncated or corrupt cache entry is not worth reporting - just refetch.
     return null;
   }
 }
@@ -152,7 +152,7 @@ export async function fetchJson<T>(url: string, options: FetchOptions = {}): Pro
 /* -------------------------------------------------------------------------- */
 
 /**
- * A minimal concurrency limiter — the `p-limit` shape, in fifteen lines.
+ * A minimal concurrency limiter - the `p-limit` shape, in fifteen lines.
  *
  * Written out rather than pulled in because the whole contract is "run at most N
  * of these at once", and a dependency for that is more supply-chain surface than

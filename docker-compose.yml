@@ -2,7 +2,7 @@
 #
 # Understory targets CognoDB Cloud in production. CognoDB speaks openCypher over
 # Bolt 5.x and is driven by the official Neo4j driver, so a local Neo4j 5
-# container is a faithful stand-in for offline development — the application
+# container is a faithful stand-in for offline development - the application
 # code, the Cypher, and the driver calls are byte-for-byte identical. The only
 # thing that changes between local and production is the three NEO4J_* values
 # in `.env.local`.

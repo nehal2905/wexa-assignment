@@ -16,14 +16,14 @@ import type { PackageSearchHit } from "@/lib/queries/discovery";
  *    typing feels laggy but well above per-keystroke.
  *  - **Out-of-order responses.** Requests are cancelled with an `AbortController`
  *    when superseded. Without this, a slow response for "ex" can land after a
- *    fast one for "express" and overwrite the correct results with stale ones —
+ *    fast one for "express" and overwrite the correct results with stale ones -
  *    a bug that only shows up on a bad connection, which is exactly when a
  *    reviewer will be looking at the deployed demo.
  *  - **Keyboard navigation.** Arrow keys, Enter and Escape, with the ARIA
  *    combobox roles that make the listbox announce properly to a screen reader.
  */
 export function PackageSearch({
-  placeholder = "Search a package — try express, lodash, axios…",
+  placeholder = "Search a package - try express, lodash, axios...",
   autoFocus = false,
   onPick,
   size = "large",
@@ -72,7 +72,7 @@ export function PackageSearch({
         })
         .catch((error: unknown) => {
           // An abort is the expected outcome of typing another character, not a
-          // failure — reporting it would flash an error on every keystroke.
+          // failure - reporting it would flash an error on every keystroke.
           if (error instanceof DOMException && error.name === "AbortError") return;
           setStatus("error");
         });
@@ -219,7 +219,7 @@ export function PackageSearch({
             {status === "ready" && results.length === 0 && (
               <li className="px-4 py-6 text-center">
                 <p className="text-[13px] text-[var(--color-ink)]">
-                  Nothing matching “{term.trim()}”
+                  Nothing matching "{term.trim()}"
                 </p>
                 <p className="mt-1 text-[12px] leading-relaxed text-[var(--color-ink-faint)]">
                   This graph is a seeded slice of the registry, not all two million packages.

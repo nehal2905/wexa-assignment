@@ -10,18 +10,18 @@ import {
 } from "@/lib/graph/model";
 
 /**
- * Client for OSV.dev — Google's open vulnerability database, which aggregates
+ * Client for OSV.dev - Google's open vulnerability database, which aggregates
  * GitHub Security Advisories, CVEs, and ecosystem-specific sources.
  *
  * Two calls are involved, and the split matters for correctness:
  *
- *  1. `POST /v1/querybatch` — given (package, version) pairs, returns which
+ *  1. `POST /v1/querybatch` - given (package, version) pairs, returns which
  *     advisory IDs apply. **OSV performs the range matching**, so we do not have
  *     to reimplement "is 4.17.20 inside `>=4.0.0 <4.17.21`" for every advisory
  *     format. This is why the graph stores resolved versions: it lets us ask the
  *     authoritative source a precise question.
  *
- *  2. `GET /v1/vulns/{id}` — full advisory detail for each unique ID.
+ *  2. `GET /v1/vulns/{id}` - full advisory detail for each unique ID.
  *
  * Both are cached to disk per entity, so re-running the seed does not re-query.
  */

@@ -9,7 +9,7 @@ import { RetryButton } from "./retry-button";
  * unreachable, and the temptation is to render "Something went wrong" and move
  * on. That is not graceful, it is just quiet. This component is built on the
  * premise that the person looking at it needs to know three things: what failed,
- * whether it is their fault, and what to do next — and that those answers differ
+ * whether it is their fault, and what to do next - and that those answers differ
  * completely depending on the failure.
  *
  * The `code` on {@link AppError} is a closed set (see `db/errors.ts`), so each
@@ -29,7 +29,7 @@ const GUIDANCE: Record<ErrorCode, Guidance> = {
     explanation:
       "Understory reached out to its CognoDB instance and got no answer. Everything on this page comes from live graph queries, so there is nothing meaningful to show until the connection is back.",
     steps: [
-      "Check the instance is running at console.cognodb.com — free-tier instances can be paused after a period of inactivity.",
+      "Check the instance is running at console.cognodb.com - free-tier instances can be paused after a period of inactivity.",
       "Confirm NEO4J_URI in your environment matches the connection string shown in the console.",
       "If you are running locally, check the database container is up: docker compose ps",
     ],
@@ -38,7 +38,7 @@ const GUIDANCE: Record<ErrorCode, Guidance> = {
   DB_AUTH: {
     headline: "The database refused our credentials",
     explanation:
-      "The instance is reachable, which rules out networking — but it rejected the username and password we presented.",
+      "The instance is reachable, which rules out networking - but it rejected the username and password we presented.",
     steps: [
       "CognoDB instances use the username cognodb, not neo4j.",
       "The generated password is shown only once at creation. If it was not saved, rotate it from the console.",
@@ -155,7 +155,7 @@ export function DatabaseError({ error }: { error: AppError }) {
       </div>
 
       <p className="mt-5 text-center text-[12px] leading-relaxed text-[var(--color-ink-faint)]">
-        Understory holds no data of its own — every panel is a live query against the graph.
+        Understory holds no data of its own - every panel is a live query against the graph.
       </p>
     </div>
   );

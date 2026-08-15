@@ -89,7 +89,7 @@ export const INDEXES: readonly SchemaStatement[] = [
   },
   {
     // TEXT indexes are the most vendor-specific part of openCypher, and CognoDB
-    // does not implement them — the schema step logs a warning and moves on.
+    // does not implement them - the schema step logs a warning and moves on.
     // A plain range index on the same property is universally supported and
     // still accelerates the equality and STARTS WITH tiers of the search
     // ordering, even though it cannot serve CONTAINS. Declaring both, and
@@ -151,7 +151,7 @@ export const SCHEMA_STATEMENTS: readonly SchemaStatement[] = [...CONSTRAINTS, ..
  * Deletes all data in batches.
  *
  * `CALL { ... } IN TRANSACTIONS` keeps each batch in its own transaction so the
- * delete never has to hold the whole graph in memory at once — which matters a
+ * delete never has to hold the whole graph in memory at once - which matters a
  * great deal on a 256 MB free-tier instance, where a naive
  * `MATCH (n) DETACH DELETE n` will run the server out of heap.
  */

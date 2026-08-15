@@ -2,7 +2,7 @@
   "name": "understory",
   "version": "1.0.0",
   "private": true,
-  "description": "Explore the transitive dependency graph beneath any npm package — vulnerability reachability, maintainer blast radius, and license contamination, powered by CognoDB.",
+  "description": "Explore the transitive dependency graph beneath any npm package - vulnerability reachability, maintainer blast radius, and license contamination, powered by CognoDB.",
   "engines": {
     "node": ">=20.9.0"
   },
