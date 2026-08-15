@@ -8,11 +8,16 @@ Built on [CognoDB](https://console.cognodb.com), openCypher over Bolt, driven by
 
 | | |
 |---|---|
-| **Live demo** | _(deployment URL)_ |
+| **Live demo** | **https://wexa-assignment-akulanehal0905-4320s-projects.vercel.app** |
 | **Screen recording** | _(recording link)_ |
 | **Stack** | Next.js 15 (App Router) · TypeScript · Tailwind CSS 4 · neo4j-driver 5 · CognoDB |
 | **Data** | npm registry (dependency graph) + [OSV.dev](https://osv.dev) (advisories) |
-| **Graph size** | ~1,800 packages · ~3,000 resolved versions · ~21,000 relationships |
+| **Graph size** | 1,811 packages · 3,025 resolved versions · 6,257 nodes · 20,970 relationships |
+
+> The demo runs against a live CognoDB free-tier instance in `us-east4`, with the
+> Vercel functions co-located in `iad1`. Every panel is a real Cypher query — no
+> data is cached or baked into the build, so what you see is the graph as it
+> stands right now.
 
 ---
 
