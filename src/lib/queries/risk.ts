@@ -67,12 +67,32 @@ export const VULNERABILITY_PATHS = defineQuery({
 
     // Drive from the advisory side: only ~10% of versions carry one, so this is
     // a far smaller starting set than "every version reachable from the root".
-    MATCH (vuln:Vulnerability)-[affects:AFFECTS]->(target:Version)
-    WHERE vuln.severity IN $severities
+    // Collapsing to DISTINCT versions first means one path search per affected
+    // version rather than one per advisory edge.
+    MATCH (:Vulnerability)-[:AFFECTS]->(candidate:Version)
+    WITH root, collect(DISTINCT candidate) AS candidates
+    UNWIND candidates AS target
 
     // Both endpoints are bound, so this runs as a bidirectional breadth-first
     // search rather than an enumeration of every path between them.
-    MATCH path = shortestPath((root)-[:DEPENDS_ON*0..8]->(target))
+    //
+    // The lower bound is 1, and the root is handled as its own case below,
+    // because CognoDB's shortestPath does not return a zero-length path. With
+    // *0..8 an advisory affecting the audited package itself would simply not
+    // appear — silent under-reporting, in the one place it matters most.
+    OPTIONAL MATCH found = shortestPath((root)-[:DEPENDS_ON*1..8]->(target))
+    WITH root, target, CASE WHEN target = root THEN null ELSE found END AS path
+    WHERE path IS NOT NULL OR target = root
+
+    WITH target,
+         CASE WHEN path IS NULL THEN 0 ELSE length(path) END AS depth,
+         CASE WHEN path IS NULL THEN [root.key]
+              ELSE [node IN nodes(path) | node.key] END AS pathKeys,
+         CASE WHEN path IS NULL THEN []
+              ELSE [rel IN relationships(path) | rel.scope] END AS pathScopes
+
+    MATCH (vuln:Vulnerability)-[affects:AFFECTS]->(target)
+    WHERE vuln.severity IN $severities
 
     RETURN vuln.id            AS id,
            vuln.severity      AS severity,
@@ -84,9 +104,9 @@ export const VULNERABILITY_PATHS = defineQuery({
            target.packageName AS targetPackage,
            target.version     AS targetVersion,
            affects.fixedIn    AS fixedIn,
-           length(path)       AS depth,
-           [node IN nodes(path) | node.key]         AS pathKeys,
-           [rel  IN relationships(path) | rel.scope] AS pathScopes
+           depth,
+           pathKeys,
+           pathScopes
     ORDER BY
       CASE vuln.severity
         WHEN 'CRITICAL' THEN 0
@@ -146,10 +166,22 @@ const VULNERABILITY_PATHS_PRODUCTION = cypher`
   WITH root, collect(DISTINCT candidate) AS candidates
   UNWIND candidates AS target
 
-  MATCH path = shortestPath((root)-[:DEPENDS_ON*0..8]->(target))
-  WHERE ALL(hop IN relationships(path) WHERE hop.scope <> 'dev')
+  // Lower bound of 1 with the root handled separately — see the note on
+  // VULNERABILITY_PATHS. An advisory on the audited package itself is always
+  // in production scope, since reaching it requires no dependency edge at all.
+  OPTIONAL MATCH found = shortestPath((root)-[:DEPENDS_ON*1..8]->(target))
+  WHERE ALL(hop IN relationships(found) WHERE hop.scope <> 'dev')
 
-  WITH root, target, path
+  WITH root, target, CASE WHEN target = root THEN null ELSE found END AS path
+  WHERE path IS NOT NULL OR target = root
+
+  WITH target,
+       CASE WHEN path IS NULL THEN 0 ELSE length(path) END AS depth,
+       CASE WHEN path IS NULL THEN [root.key]
+            ELSE [node IN nodes(path) | node.key] END AS pathKeys,
+       CASE WHEN path IS NULL THEN []
+            ELSE [rel IN relationships(path) | rel.scope] END AS pathScopes
+
   MATCH (vuln:Vulnerability)-[affects:AFFECTS]->(target)
   WHERE vuln.severity IN $severities
 
@@ -163,9 +195,9 @@ const VULNERABILITY_PATHS_PRODUCTION = cypher`
          target.packageName AS targetPackage,
          target.version     AS targetVersion,
          affects.fixedIn    AS fixedIn,
-         length(path)       AS depth,
-         [node IN nodes(path) | node.key]         AS pathKeys,
-         [rel  IN relationships(path) | rel.scope] AS pathScopes
+         depth,
+         pathKeys,
+         pathScopes
   ORDER BY
     CASE vuln.severity
       WHEN 'CRITICAL' THEN 0

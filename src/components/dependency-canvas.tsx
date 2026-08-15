@@ -70,7 +70,6 @@ export function DependencyCanvas({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const [hovered, setHovered] = useState<SimNode | null>(null);
-  const [isSettled, setIsSettled] = useState(false);
 
   // View transform, kept in a ref: it changes on every wheel and drag event and
   // must not trigger a React re-render per frame.
@@ -81,6 +80,70 @@ export function DependencyCanvas({
   const hoveredRef = useRef<SimNode | null>(null);
   /** Set by any interaction that changes what should be on screen. */
   const needsRedrawRef = useRef(true);
+  /** Cleared once the view has been auto-fitted to the settled layout. */
+  const needsFitRef = useRef(true);
+  /**
+   * Re-arms the render loop after it has gone idle. Assigned by the render
+   * effect; every interaction handler calls it rather than touching rAF
+   * directly.
+   */
+  const requestDrawRef = useRef<(() => void) | null>(null);
+
+  const requestDraw = useCallback(() => {
+    requestDrawRef.current?.();
+  }, []);
+
+  /**
+   * Fits the whole graph into the viewport.
+   *
+   * Without this the layout is only accidentally visible. A 440-node tree spread
+   * over four depth columns puts roughly a hundred nodes in each, and a hundred
+   * nodes at collision spacing need far more vertical room than the canvas has —
+   * so the columns overflow and the root, pinned to the far left, ends up
+   * off-screen. The user is then looking at the middle of a graph with no idea
+   * where their own package is.
+   *
+   * Measuring the settled bounding box and scaling to fit is both the correct
+   * fix and one that keeps working for any graph size, rather than tuning
+   * constants until one particular package happens to look right.
+   */
+  const fitToView = useCallback(() => {
+    const wrapper = wrapperRef.current;
+    const nodes = nodesRef.current;
+    if (wrapper === null || nodes.length === 0) return;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const node of nodes) {
+      if (node.x === undefined || node.y === undefined) continue;
+      minX = Math.min(minX, node.x - node.radius);
+      minY = Math.min(minY, node.y - node.radius);
+      maxX = Math.max(maxX, node.x + node.radius);
+      maxY = Math.max(maxY, node.y + node.radius);
+    }
+    if (!Number.isFinite(minX)) return;
+
+    const padding = 34; // room for the labels drawn beneath each node
+    const width = wrapper.clientWidth;
+    const scale = Math.min(
+      4,
+      Math.max(
+        0.2,
+        Math.min((width - padding * 2) / (maxX - minX || 1), (height - padding * 2) / (maxY - minY || 1)),
+      ),
+    );
+
+    viewRef.current = {
+      scale,
+      offsetX: padding - minX * scale + (width - padding * 2 - (maxX - minX) * scale) / 2,
+      offsetY: padding - minY * scale + (height - padding * 2 - (maxY - minY) * scale) / 2,
+    };
+    needsRedrawRef.current = true;
+    requestDrawRef.current?.();
+  }, [height]);
 
   const maxDepth = useMemo(
     () => inputNodes.reduce((deepest, node) => Math.max(deepest, node.depth), 0),
@@ -119,6 +182,9 @@ export function DependencyCanvas({
 
     nodesRef.current = simNodes;
     linksRef.current = simLinks;
+    // A new dataset (different package, or a changed depth) needs re-framing.
+    needsFitRef.current = true;
+    viewRef.current = { scale: 1, offsetX: 0, offsetY: 0 };
 
     const width = wrapper.clientWidth;
     const columnWidth = maxDepth > 0 ? (width * 0.82) / maxDepth : 0;
@@ -157,16 +223,46 @@ export function DependencyCanvas({
         "collide",
         forceCollide<SimNode>((node) => node.radius + 3).strength(0.9).iterations(2),
       )
-      .alphaDecay(0.028);
+      .alphaDecay(0.028)
+      // Do not start the internal animation timer. See below.
+      .stop();
+
+    /**
+     * The layout is solved synchronously, not animated into place.
+     *
+     * `forceSimulation` normally drives itself off `requestAnimationFrame`,
+     * repainting after each tick so the graph is seen relaxing. That looks
+     * pleasant and costs a surprising amount: the component has to track when
+     * the layout is "done", the render loop has to keep running until it is, and
+     * every consumer of the final positions — auto-fit, in particular — has to
+     * wait for an event that may never arrive if a tick is dropped or the tab is
+     * backgrounded.
+     *
+     * Running the ticks in a loop instead gives the finished layout immediately.
+     * The standard formula below is the number of iterations d3 would have run
+     * anyway before alpha decayed past its floor, so the result is identical to
+     * the animated version — just without the intermediate frames, the timing
+     * dependency, and the class of bugs that comes with them.
+     *
+     * For a few hundred nodes this is a few hundred milliseconds, once, on a
+     * layout the user then reads for far longer.
+     */
+    const iterations = Math.ceil(
+      Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay()),
+    );
+    for (let step = 0; step < iterations; step += 1) simulation.tick();
 
     simulationRef.current = simulation;
-    setIsSettled(false);
+
+    // Positions are final, so the view can be framed right away.
+    needsFitRef.current = false;
+    fitToView();
 
     return () => {
       simulation.stop();
       simulationRef.current = null;
     };
-  }, [inputNodes, inputEdges, rootKey, height, maxDepth]);
+  }, [inputNodes, inputEdges, rootKey, height, maxDepth, fitToView]);
 
   /* ---------------------------------------------------------------------- */
   /* Rendering                                                               */
@@ -340,34 +436,39 @@ export function DependencyCanvas({
    * `restart()` from an interaction — leaves the loading indicator stuck on
    * screen forever. Reading alpha each frame is always correct.
    */
+  /**
+   * Paint-on-demand.
+   *
+   * Because the layout is solved up front, there is no animation to drive — the
+   * canvas only needs repainting when something the user did changes what should
+   * be on it: hovering, panning, zooming, or re-fitting. Each of those calls
+   * `requestDraw`, which coalesces into at most one paint per frame.
+   *
+   * The page is genuinely idle the rest of the time, which is the difference
+   * between a static visualisation and one that quietly burns a core for as long
+   * as the tab is open.
+   */
   useEffect(() => {
-    let frame = 0;
-    let settled = false;
+    let frame: number | null = null;
 
-    const loop = () => {
-      const simulation = simulationRef.current;
-      const alpha = simulation?.alpha() ?? 0;
-      const isHot = simulation !== null && alpha > (simulation?.alphaMin() ?? 0.001);
-
-      if (isHot || needsRedrawRef.current) {
+    requestDrawRef.current = () => {
+      needsRedrawRef.current = true;
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        if (!needsRedrawRef.current) return;
         needsRedrawRef.current = false;
         draw();
-      }
-
-      if (!isHot && !settled) {
-        settled = true;
-        setIsSettled(true);
-        draw(); // one final frame at rest
-      } else if (isHot && settled) {
-        settled = false;
-        setIsSettled(false);
-      }
-
-      frame = requestAnimationFrame(loop);
+      });
     };
 
-    frame = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frame);
+    // First paint.
+    requestDrawRef.current();
+
+    return () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      requestDrawRef.current = null;
+    };
   }, [draw]);
 
   /* ---------------------------------------------------------------------- */
@@ -433,14 +534,14 @@ export function DependencyCanvas({
               viewRef.current.offsetY += dy;
               drag.x = event.clientX;
               drag.y = event.clientY;
-              needsRedrawRef.current = true;
+              requestDraw();
               return;
             }
 
             const node = nodeAt(event.clientX, event.clientY);
             if (node?.key !== hoveredRef.current?.key) {
               hoveredRef.current = node;
-              needsRedrawRef.current = true;
+              requestDraw();
               setHovered(node);
             }
           }}
@@ -450,7 +551,7 @@ export function DependencyCanvas({
           onMouseLeave={() => {
             dragState.current = null;
             hoveredRef.current = null;
-            needsRedrawRef.current = true;
+            requestDraw();
             setHovered(null);
           }}
           onClick={(event) => {
@@ -471,21 +572,23 @@ export function DependencyCanvas({
             view.offsetX -= point.x * (next - view.scale);
             view.offsetY -= point.y * (next - view.scale);
             view.scale = next;
-            needsRedrawRef.current = true;
+            requestDraw();
           }}
         />
 
-        {!isSettled && (
-          <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)]/90 px-2.5 py-1.5 text-[11px] text-[var(--color-ink-muted)]">
-            <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-[var(--color-line-strong)] border-t-[var(--color-accent)]" />
-            settling layout…
-          </div>
-        )}
-
         {hovered !== null && <NodeTooltip node={hovered} />}
 
-        <div className="pointer-events-none absolute bottom-3 right-3 rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)]/90 px-2.5 py-1.5 text-[11px] text-[var(--color-ink-faint)]">
-          scroll to zoom · drag to pan · click a node to open it
+        <div className="absolute bottom-3 right-3 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fitToView()}
+            className="rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-surface)]/90 px-2.5 py-1.5 text-[11px] text-[var(--color-ink-muted)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-ink)]"
+          >
+            fit to view
+          </button>
+          <span className="pointer-events-none rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)]/90 px-2.5 py-1.5 text-[11px] text-[var(--color-ink-faint)]">
+            scroll to zoom · drag to pan · click a node to open it
+          </span>
         </div>
       </div>
 

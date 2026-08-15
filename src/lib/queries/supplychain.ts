@@ -95,12 +95,23 @@ export const LICENSE_EXPOSURE = defineQuery({
   ],
   cypher: cypher`
     MATCH (root:Version { key: $rootKey })
-    MATCH path = shortestPath((root)-[:DEPENDS_ON*0..8]->(dependency:Version))
+
+    // The root is prepended rather than relying on a zero lower bound, because
+    // CognoDB's shortestPath omits the zero-length path. Without this the
+    // package's OWN licence — the one most likely to matter — is missing from
+    // its own licence report.
+    OPTIONAL MATCH path = shortestPath((root)-[:DEPENDS_ON*1..8]->(other:Version))
+    WITH root, collect({ node: other, depth: length(path) }) AS others
+
+    UNWIND ([{ node: root, depth: 0 }] + others) AS entry
+    WITH entry.node AS dependency, entry.depth AS depth
+    WHERE dependency IS NOT NULL
+
     MATCH (dependency)-[:LICENSED_UNDER]->(license:License)
 
     WITH license,
          collect(DISTINCT dependency.packageName) AS packages,
-         min(length(path))                        AS shallowestDepth
+         min(depth)                               AS shallowestDepth
 
     RETURN license.spdxId      AS spdxId,
            license.category    AS category,

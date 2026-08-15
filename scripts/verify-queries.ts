@@ -155,6 +155,44 @@ async function checkInvariants(): Promise<number> {
     ok("reported depth matches path length on every row");
   }
 
+  /**
+   * The audited package must appear in its own graph.
+   *
+   * `shortestPath` with a zero lower bound returns the start node on Neo4j and
+   * does NOT on CognoDB, so `*0..N` silently dropped the root everywhere it was
+   * used. The visible symptom was a missing node on the canvas; the invisible
+   * one was advisories and licence obligations on the package being audited
+   * going unreported. Both are asserted here so the difference can never quietly
+   * come back.
+   */
+  const graph = await getDependencyGraph(ROOT, 2, 400);
+  const rootNode = graph.nodes.find((node) => node.key === ROOT);
+  if (rootNode === undefined) {
+    failures += 1;
+    fail(`the audited package is missing from its own dependency graph (${ROOT})`);
+  } else if (rootNode.depth !== 0) {
+    failures += 1;
+    fail(`the audited package is present but at depth ${rootNode.depth} rather than 0`);
+  } else {
+    ok("the audited package appears in its own graph at depth 0");
+  }
+
+  const licences = await getLicenseExposure(ROOT);
+  const coversRoot = licences.rows.some((row) => row.shallowestDepth === 0);
+  if (!coversRoot) {
+    failures += 1;
+    fail("licence exposure omits the audited package's own licence (depth 0)");
+  } else {
+    ok("licence exposure includes the audited package's own licence");
+  }
+
+  // An advisory affecting the root itself is reachable at depth 0 by definition.
+  const selfAdvisories = production.rows.filter((row) => row.depth === 0);
+  ok(
+    `${selfAdvisories.length} advisor${selfAdvisories.length === 1 ? "y" : "ies"} on the audited package itself ` +
+      style.dim("(these were dropped entirely before the zero-length-path fix)"),
+  );
+
   return failures;
 }
 

@@ -35,14 +35,18 @@ export const PACKAGE_OVERVIEW = defineQuery({
 
     // One traversal produces the whole closure *and* each member's distance.
     //
-    // The lower bound is 0, not 1, and that is load-bearing: shortestPath refuses
-    // to run when its start and end node are the same, and npm dependency graphs
-    // genuinely contain cycles, so a *1..8 bound would hit that the moment a
-    // package could reach itself. Starting at 0 makes the root a legitimate
-    // zero-length result instead of an error, and the root is subtracted back out
-    // of the counts below.
-    MATCH path = shortestPath((root)-[:DEPENDS_ON*0..8]->(member:Version))
-    WITH root, pkg, ownLicense, directCount, member, length(path) AS depth
+    // The root is prepended explicitly rather than relying on a zero lower
+    // bound: CognoDB's shortestPath does not return the zero-length path, so
+    // *0..8 would omit the audited package from its own totals. See the note
+    // above NODES_DEPTH_1.
+    OPTIONAL MATCH path = shortestPath((root)-[:DEPENDS_ON*1..8]->(other:Version))
+    WITH root, pkg, ownLicense, directCount,
+         collect({ node: other, depth: length(path) }) AS others
+
+    UNWIND ([{ node: root, depth: 0 }] + others) AS entry
+    WITH root, pkg, ownLicense, directCount,
+         entry.node AS member, entry.depth AS depth
+    WHERE member IS NOT NULL
 
     OPTIONAL MATCH (member)<-[:AFFECTS]-(vuln:Vulnerability)
     WITH root, pkg, ownLicense, directCount,
@@ -132,9 +136,15 @@ const PACKAGE_OVERVIEW_PRODUCTION = cypher`
   WHERE declared.scope <> 'dev'
   WITH root, pkg, ownLicense, count(DISTINCT direct) AS directCount
 
-  MATCH path = shortestPath((root)-[:DEPENDS_ON*0..8]->(member:Version))
+  OPTIONAL MATCH path = shortestPath((root)-[:DEPENDS_ON*1..8]->(other:Version))
   WHERE ALL(hop IN relationships(path) WHERE hop.scope <> 'dev')
-  WITH root, pkg, ownLicense, directCount, member, length(path) AS depth
+  WITH root, pkg, ownLicense, directCount,
+       collect({ node: other, depth: length(path) }) AS others
+
+  UNWIND ([{ node: root, depth: 0 }] + others) AS entry
+  WITH root, pkg, ownLicense, directCount,
+       entry.node AS member, entry.depth AS depth
+  WHERE member IS NOT NULL
 
   OPTIONAL MATCH (member)<-[:AFFECTS]-(vuln:Vulnerability)
   WITH root, pkg, ownLicense, directCount,
@@ -217,14 +227,38 @@ export async function getPackageOverview(
  * Cypher does not accept a parameter as a variable-length bound — `*1..$depth`
  * is a syntax error, not a slow query. The alternative would be building the
  * statement by concatenation, which this codebase forbids by construction (see
- * `db/cypher.ts`). So the three depths the UI offers are three static
- * statements, chosen by an exhaustive switch. Three near-identical strings is a
- * small price for the guarantee that no user input ever reaches the parser.
+ * `db/cypher.ts`). So the four depths the UI offers are four static statements,
+ * chosen by an exhaustive switch. Four near-identical strings is a small price
+ * for the guarantee that no user input ever reaches the parser.
+ *
+ * ## Why the root is added by hand
+ *
+ * The obvious spelling is `shortestPath((root)-[:DEPENDS_ON*0..N]->(node))`,
+ * where a lower bound of zero is supposed to yield the start node itself at
+ * depth 0. Neo4j does that. CognoDB does not — it returns only paths of length
+ * one or more, so the audited package was silently absent from its own graph.
+ *
+ * That is not a cosmetic difference. The same spelling appears in the
+ * reachability and licence queries, where a missing root means advisories and
+ * obligations *on the package you are auditing* go unreported — the one failure
+ * mode a security tool must never have. (`express@4.17.1` carries two advisories
+ * itself; before this fix, neither appeared.)
+ *
+ * So every traversal that needs to include its own starting point now uses a
+ * lower bound of one and prepends the root explicitly. It is more verbose, it
+ * behaves identically on both engines, and it cannot silently under-report.
  */
 const NODES_DEPTH_1 = cypher`
   MATCH (root:Version { key: $rootKey })
-  MATCH path = shortestPath((root)-[:DEPENDS_ON*0..1]->(node:Version))
-  WITH node, length(path) AS depth
+
+  OPTIONAL MATCH path = shortestPath((root)-[:DEPENDS_ON*1..1]->(other:Version))
+  WITH root, collect({ node: other, depth: length(path) }) AS others
+
+  // The root is prepended rather than relying on a zero lower bound.
+  UNWIND ([{ node: root, depth: 0 }] + others) AS entry
+  WITH entry.node AS node, entry.depth AS depth
+  WHERE node IS NOT NULL
+
   OPTIONAL MATCH (node)<-[:AFFECTS]-(vuln:Vulnerability)
   RETURN node.key AS key, node.packageName AS packageName, node.version AS version,
          depth, node.deprecated IS NOT NULL AS deprecated,
@@ -236,8 +270,15 @@ const NODES_DEPTH_1 = cypher`
 
 const NODES_DEPTH_2 = cypher`
   MATCH (root:Version { key: $rootKey })
-  MATCH path = shortestPath((root)-[:DEPENDS_ON*0..2]->(node:Version))
-  WITH node, length(path) AS depth
+
+  OPTIONAL MATCH path = shortestPath((root)-[:DEPENDS_ON*1..2]->(other:Version))
+  WITH root, collect({ node: other, depth: length(path) }) AS others
+
+  // The root is prepended rather than relying on a zero lower bound.
+  UNWIND ([{ node: root, depth: 0 }] + others) AS entry
+  WITH entry.node AS node, entry.depth AS depth
+  WHERE node IS NOT NULL
+
   OPTIONAL MATCH (node)<-[:AFFECTS]-(vuln:Vulnerability)
   RETURN node.key AS key, node.packageName AS packageName, node.version AS version,
          depth, node.deprecated IS NOT NULL AS deprecated,
@@ -249,8 +290,15 @@ const NODES_DEPTH_2 = cypher`
 
 const NODES_DEPTH_3 = cypher`
   MATCH (root:Version { key: $rootKey })
-  MATCH path = shortestPath((root)-[:DEPENDS_ON*0..3]->(node:Version))
-  WITH node, length(path) AS depth
+
+  OPTIONAL MATCH path = shortestPath((root)-[:DEPENDS_ON*1..3]->(other:Version))
+  WITH root, collect({ node: other, depth: length(path) }) AS others
+
+  // The root is prepended rather than relying on a zero lower bound.
+  UNWIND ([{ node: root, depth: 0 }] + others) AS entry
+  WITH entry.node AS node, entry.depth AS depth
+  WHERE node IS NOT NULL
+
   OPTIONAL MATCH (node)<-[:AFFECTS]-(vuln:Vulnerability)
   RETURN node.key AS key, node.packageName AS packageName, node.version AS version,
          depth, node.deprecated IS NOT NULL AS deprecated,
@@ -262,8 +310,15 @@ const NODES_DEPTH_3 = cypher`
 
 const NODES_DEPTH_4 = cypher`
   MATCH (root:Version { key: $rootKey })
-  MATCH path = shortestPath((root)-[:DEPENDS_ON*0..4]->(node:Version))
-  WITH node, length(path) AS depth
+
+  OPTIONAL MATCH path = shortestPath((root)-[:DEPENDS_ON*1..4]->(other:Version))
+  WITH root, collect({ node: other, depth: length(path) }) AS others
+
+  // The root is prepended rather than relying on a zero lower bound.
+  UNWIND ([{ node: root, depth: 0 }] + others) AS entry
+  WITH entry.node AS node, entry.depth AS depth
+  WHERE node IS NOT NULL
+
   OPTIONAL MATCH (node)<-[:AFFECTS]-(vuln:Vulnerability)
   RETURN node.key AS key, node.packageName AS packageName, node.version AS version,
          depth, node.deprecated IS NOT NULL AS deprecated,

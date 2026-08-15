@@ -72,14 +72,19 @@ export function ChokepointPanel({
         <>
           {top !== undefined && (
             <div className="border-b border-[var(--color-line)] bg-[var(--color-accent-ghost)]/40 px-5 py-4">
+              {/* Deliberately not "N of M". Summing the per-chokepoint counts
+                  does not give a meaningful total: one advisory reachable
+                  through two different direct dependencies is counted under
+                  both, and advisories on the audited package itself have no
+                  chokepoint at all. Quoting that sum as a denominator would
+                  contradict the header, which counts distinct advisories. */}
               <p className="text-[13px] leading-relaxed text-[var(--color-ink-muted)]">
                 Upgrading <Code className="text-[var(--color-accent)]">{top.packageName}</Code> alone
-                would remove{" "}
+                would clear{" "}
                 <strong className="font-semibold text-[var(--color-ink)]">
-                  {top.vulnerabilityCount} of the {totalAdvisories(rows)} reachable advisor
-                  {totalAdvisories(rows) === 1 ? "y" : "ies"}
-                </strong>{" "}
-                — every one of them arrives through that one package.
+                  {top.vulnerabilityCount} advisor{top.vulnerabilityCount === 1 ? "y" : "ies"}
+                </strong>
+                {rows.length > 1 ? " — more than any other single change." : "."}
               </p>
             </div>
           )}
@@ -136,9 +141,6 @@ export function ChokepointPanel({
   );
 }
 
-function totalAdvisories(rows: Chokepoint[]): number {
-  return rows.reduce((sum, row) => sum + row.vulnerabilityCount, 0);
-}
 
 /* -------------------------------------------------------------------------- */
 /* Vulnerability paths                                                         */

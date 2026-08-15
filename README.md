@@ -478,10 +478,31 @@ arrow turns thousands of traversals into one.
 | `CREATE TEXT INDEX` unsupported | schema step logged a warning | index creation is non-fatal by design; a plain range index was added as a fallback |
 | `resultAvailableAfter` not reported over Bolt | *every* query failed on metadata, not on the query | timings are optional; the UI says "live graph query" rather than inventing a 0 ms |
 | `[hops:DEPENDS_ON*1..8]` binds a `Path`, not a list | `all() requires list, got *types.Path` | use a named path and `relationships(path)`, which is a list on both engines |
+| **`shortestPath` with a zero lower bound does not return the start node** | the audited package was missing from its own graph | lower bound of 1, root prepended explicitly, asserted by two invariants |
 
-The second of those is the one worth dwelling on: a *timing display* was able to
-fail a *query*. Optional protocol fields should never be treated as guaranteed,
-and the fix — return `-1` and render "not reported" — is smaller than the bug.
+Two of those deserve dwelling on.
+
+The timing one, because a *timing display* was able to fail a *query* — every
+query, in fact. Optional protocol fields should never be treated as guaranteed,
+and the fix (return `-1`, render "not reported") is smaller than the bug.
+
+The `shortestPath` one, because of how quietly it failed. `*0..N` is supposed to
+include the start node at depth 0; Neo4j does, CognoDB does not. The visible
+symptom was a missing dot on the canvas. The invisible symptom was that
+**advisories and licence obligations on the package being audited were not
+reported at all** — `express@4.17.1` carries two advisories of its own, and both
+were silently absent. A security tool that under-reports is worse than one that
+does not run, because nothing looks wrong. It is now covered by explicit
+invariants:
+
+```
+✓ the audited package appears in its own graph at depth 0
+✓ licence exposure includes the audited package's own licence
+✓ 2 advisories on the audited package itself
+```
+
+This is the argument for testing against the real target rather than a
+locally-convenient stand-in. Every one of these passed against Neo4j.
 
 The remaining floor is network latency. Every query, including a trivial count,
 takes about 780 ms round trip from a laptop in a different region to the
