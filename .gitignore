@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# production
+build/
+dist/
+
+# secrets — NEVER commit these
+.env
+.env.local
+.env.*.local
+.env.production
+*.pem
+
+# seed pipeline cache (raw registry / OSV responses, regenerable)
+scripts/seed/.cache/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# vercel
+.vercel

@@ -1,0 +1,40 @@
+{
+  "name": "understory",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Explore the transitive dependency graph beneath any npm package — vulnerability reachability, maintainer blast radius, and license contamination, powered by CognoDB.",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "db:check": "tsx scripts/db-check.ts",
+    "db:schema": "tsx scripts/apply-schema.ts",
+    "db:seed": "tsx scripts/seed/index.ts",
+    "db:reset": "tsx scripts/reset.ts",
+    "db:stats": "tsx scripts/stats.ts"
+  },
+  "dependencies": {
+    "d3-force": "3.0.0",
+    "neo4j-driver": "5.28.3",
+    "next": "15.5.23",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "semver": "7.8.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/d3-force": "3.0.10",
+    "@types/node": "22.10.5",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "@types/semver": "7.7.1",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}

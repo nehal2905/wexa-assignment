@@ -1,0 +1,194 @@
+@import "tailwindcss";
+
+/**
+ * Understory design tokens.
+ *
+ * Committed to a single dark theme rather than shipping a half-considered light
+ * one. This is a tool for reading dense, hierarchical data — a deep neutral
+ * ground lets the severity colours carry meaning instead of competing with a
+ * bright page, and one well-tuned palette beats two mediocre ones.
+ *
+ * Typography is a system stack on purpose: no webfont request, no layout shift
+ * while a font swaps, and no build-time dependency on fetching from a font CDN.
+ */
+
+@theme {
+  /* --- Ground and surfaces ------------------------------------------------ */
+  --color-ground: #08090b;
+  --color-surface: #0e1013;
+  --color-surface-raised: #14171b;
+  --color-surface-hover: #191d22;
+
+  --color-line: #202429;
+  --color-line-strong: #2c3239;
+
+  /* --- Text --------------------------------------------------------------- */
+  --color-ink: #e9ecef;
+  --color-ink-muted: #9aa3ad;
+  --color-ink-faint: #6b747e;
+
+  /* --- Accent ------------------------------------------------------------- */
+  --color-accent: #5ee9b5;
+  --color-accent-dim: #2b8f6d;
+  --color-accent-ghost: #0f2a22;
+
+  /* --- Severity ----------------------------------------------------------- */
+  --color-critical: #ff5c5c;
+  --color-critical-ghost: #2a1114;
+  --color-high: #ff9f43;
+  --color-high-ghost: #2a1c0f;
+  --color-moderate: #ffd166;
+  --color-moderate-ghost: #262010;
+  --color-low: #6fb6ff;
+  --color-low-ghost: #101c2a;
+  --color-unknown: #8b95a1;
+  --color-unknown-ghost: #1a1d21;
+
+  /* --- License obligation ------------------------------------------------- */
+  --color-permissive: #5ee9b5;
+  --color-copyleft: #ff9f43;
+  --color-copyleft-strong: #ff5c5c;
+
+  /* --- Type ---------------------------------------------------------------- */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
+
+  /* --- Motion -------------------------------------------------------------- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Base                                                                        */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  /* Prevent the page shifting sideways when a long list adds a scrollbar. */
+  scrollbar-gutter: stable;
+}
+
+body {
+  background-color: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* A single, quiet focus treatment everywhere, rather than the browser default
+   that changes appearance per element type. Keyboard users get a clear ring;
+   mouse users never see it. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+::selection {
+  background: var(--color-accent-dim);
+  color: #04110c;
+}
+
+/* Scrollbars, toned down to match the surfaces they sit on. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 6px;
+  border: 3px solid var(--color-ground);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #3b434c;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Utilities                                                                   */
+/* -------------------------------------------------------------------------- */
+
+@utility surface-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+}
+
+/** Fine grid backdrop for the hero and the graph canvas frame. */
+@utility grid-backdrop {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-line) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-line) 55%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/** Numeric columns should align on the decimal, not wander with the glyph widths. */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* -------------------------------------------------------------------------- */
+/* Motion                                                                      */
+/* -------------------------------------------------------------------------- */
+
+@keyframes understory-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes understory-shimmer {
+  0% {
+    background-position: -420px 0;
+  }
+  100% {
+    background-position: 420px 0;
+  }
+}
+
+@utility animate-fade-up {
+  animation: understory-fade-up 0.36s var(--ease-out-soft) both;
+}
+
+/** Skeleton placeholder used by every Suspense fallback. */
+@utility shimmer {
+  background-color: var(--color-surface-raised);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--color-line-strong) 70%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 420px 100%;
+  background-repeat: no-repeat;
+  animation: understory-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Respect the system setting. Anything conveying state must remain legible
+   without motion, so these degrade to static rather than to hidden. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
