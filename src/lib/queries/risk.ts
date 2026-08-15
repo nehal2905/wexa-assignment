@@ -134,11 +134,24 @@ export interface VulnerabilityPath {
  */
 const VULNERABILITY_PATHS_PRODUCTION = cypher`
   MATCH (root:Version { key: $rootKey })
-  MATCH (vuln:Vulnerability)-[affects:AFFECTS]->(target:Version)
-  WHERE vuln.severity IN $severities
+
+  // Collapse to DISTINCT affected versions before doing any path-finding.
+  //
+  // There are roughly three and a half advisory edges per affected version, so
+  // driving path-finding straight off AFFECTS runs shortestPath ~460 times
+  // instead of ~135 — the same answer at three times the cost. On the free tier
+  // that was the difference between comfortably inside the query deadline and
+  // sitting right on it. Advisories are re-attached after the paths are known.
+  MATCH (:Vulnerability)-[:AFFECTS]->(candidate:Version)
+  WITH root, collect(DISTINCT candidate) AS candidates
+  UNWIND candidates AS target
 
   MATCH path = shortestPath((root)-[:DEPENDS_ON*0..8]->(target))
   WHERE ALL(hop IN relationships(path) WHERE hop.scope <> 'dev')
+
+  WITH root, target, path
+  MATCH (vuln:Vulnerability)-[affects:AFFECTS]->(target)
+  WHERE vuln.severity IN $severities
 
   RETURN vuln.id            AS id,
          vuln.severity      AS severity,
@@ -262,14 +275,21 @@ export interface Chokepoint {
 /** Production-only chokepoints — see the note on VULNERABILITY_PATHS_PRODUCTION. */
 const UPGRADE_CHOKEPOINTS_PRODUCTION = cypher`
   MATCH (root:Version { key: $rootKey })
-  MATCH (vuln:Vulnerability)-[:AFFECTS]->(target:Version)
-  WHERE target <> root
+
+  // Same deduplication as the reachability query: find the paths once per
+  // affected version, then fan back out to the advisories on each.
+  MATCH (:Vulnerability)-[:AFFECTS]->(candidate:Version)
+  WHERE candidate <> root
+  WITH root, collect(DISTINCT candidate) AS candidates
+  UNWIND candidates AS target
 
   MATCH path = shortestPath((root)-[:DEPENDS_ON*1..8]->(target))
   WHERE ALL(hop IN relationships(path) WHERE hop.scope <> 'dev')
 
-  WITH vuln, target, nodes(path)[1] AS direct, length(path) AS depth
+  WITH target, nodes(path)[1] AS direct, length(path) AS depth
   WHERE direct IS NOT NULL
+
+  MATCH (vuln:Vulnerability)-[:AFFECTS]->(target)
 
   RETURN direct.packageName          AS packageName,
          direct.version              AS version,

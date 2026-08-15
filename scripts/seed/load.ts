@@ -50,6 +50,9 @@ const INTEGER_FIELDS = new Set([
   "unpackedSize",
   "fileCount",
   "peerDependencyCount",
+  "prodDependencyCount",
+  "prodVulnerabilityCount",
+  "prodSevereCount",
 ]);
 
 /**
@@ -123,6 +126,9 @@ const UPSERT_PACKAGES: Cypher = cypher`
       p.weeklyDownloads= row.weeklyDownloads,
       p.isRoot         = row.isRoot,
       p.rootVersion    = row.rootVersion,
+      p.prodDependencyCount    = row.prodDependencyCount,
+      p.prodVulnerabilityCount = row.prodVulnerabilityCount,
+      p.prodSevereCount        = row.prodSevereCount,
       p.rootBlurb      = row.rootBlurb,
       p.rootCategory   = row.rootCategory,
       p.pinnedBecause  = row.pinnedBecause

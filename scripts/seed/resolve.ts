@@ -51,6 +51,24 @@ export interface PackageRecord {
   weeklyDownloads: number | null;
   isRoot: boolean;
   /**
+   * Seed-time rollups for root packages, used by the landing page.
+   *
+   * These are denormalised on purpose. Computing them live means running a
+   * transitive closure for every card on the page — thirty-one of them — and on
+   * the CognoDB free tier (0.5 vCPU, ~5 s server-side query deadline) that query
+   * does not finish. The index page therefore reads precomputed counts while
+   * every detail page runs the traversal live.
+   *
+   * That split is not a compromise so much as the normal shape of this problem:
+   * aggregate rollups for the overview, real queries for the drill-down. The
+   * numbers are computed by breadth-first search over the crawl result in
+   * `scripts/seed/rollup.ts`, using exactly the production-scope rule the live
+   * queries use, so the two agree.
+   */
+  prodDependencyCount: number | null;
+  prodVulnerabilityCount: number | null;
+  prodSevereCount: number | null;
+  /**
    * For roots: the version the crawl actually started from.
    *
    * A package can appear in the graph at several versions at once — that is the
@@ -279,6 +297,9 @@ export async function crawl(options: CrawlOptions): Promise<CrawlResult> {
       latestVersion: snapshot.latestVersion,
       weeklyDownloads: null, // filled in later, in one bulk pass
       isRoot: root !== undefined,
+      prodDependencyCount: null, // filled in by the rollup pass
+      prodVulnerabilityCount: null,
+      prodSevereCount: null,
       rootVersion: null, // set once the root's own range has been resolved
       rootBlurb: root?.blurb ?? null,
       rootCategory: root?.category ?? null,

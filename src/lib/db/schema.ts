@@ -88,6 +88,22 @@ export const INDEXES: readonly SchemaStatement[] = [
     `,
   },
   {
+    // TEXT indexes are the most vendor-specific part of openCypher, and CognoDB
+    // does not implement them — the schema step logs a warning and moves on.
+    // A plain range index on the same property is universally supported and
+    // still accelerates the equality and STARTS WITH tiers of the search
+    // ordering, even though it cannot serve CONTAINS. Declaring both, and
+    // treating the failure of either as non-fatal, is what keeps the same
+    // schema script working against both engines.
+    name: "package_name_lower_range",
+    purpose: "prefix and exact matching in search (fallback where TEXT is unsupported)",
+    required: false,
+    statement: cypher`
+      CREATE INDEX package_name_lower_range IF NOT EXISTS
+      FOR (p:Package) ON (p.nameLower)
+    `,
+  },
+  {
     name: "package_downloads_range",
     purpose: "ordering search results and the landing page by popularity",
     required: false,

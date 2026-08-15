@@ -248,7 +248,9 @@ function RootCard({ root }: { root: RootPackageSummary }) {
       </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-[var(--color-line)] pt-3">
-        <Badge>{root.dependencyCount} deps</Badge>
+        <Badge>
+          {root.dependencyCount} {root.dependencyCount === 1 ? "dep" : "deps"}
+        </Badge>
         <Badge>{compactNumber(root.weeklyDownloads)}/wk</Badge>
         {hasSevere && (
           <Badge className="border-[color-mix(in_oklab,var(--color-critical)_32%,transparent)] bg-[var(--color-critical-ghost)] text-[var(--color-critical)]">

@@ -16,6 +16,7 @@ import { crawl } from "./resolve";
 import { fetchWeeklyDownloads } from "./registry";
 import { fetchAdvisories, findVulnerabilityIds, windowForVersion } from "./osv";
 import { loadGraph } from "./load";
+import { computeRootRollups } from "./rollup";
 import { closeDriver } from "@/lib/db/driver";
 import { getEnv, loadEnvFiles } from "@/lib/env";
 import { parseVersionKey } from "@/lib/graph/model";
@@ -176,9 +177,23 @@ async function main(): Promise<void> {
     }
   }
 
-  /* --- 6. Load ----------------------------------------------------------- */
+  /* --- 6. Rollups -------------------------------------------------------- */
 
-  heading("6 · Loading into the graph");
+  heading("6 · Rolling up landing-page summaries");
+  computeRootRollups(crawlResult, {
+    byVersion: idsByVersion,
+    severityById: new Map(
+      [...advisories.values()].map((advisory) => [advisory.id, advisory.severity]),
+    ),
+  });
+  const rolledUp = [...crawlResult.packages.values()].filter(
+    (record) => record.prodDependencyCount !== null,
+  );
+  ok(`${rolledUp.length} root packages summarised for the landing page`);
+
+  /* --- 7. Load ----------------------------------------------------------- */
+
+  heading("7 · Loading into the graph");
   if (config.wipe) {
     warn("--wipe was passed; run `npm run db:reset` first if you want a clean graph.");
   }

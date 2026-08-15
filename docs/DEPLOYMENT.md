@@ -45,7 +45,17 @@ git ls-files | grep -E '^\.env'
    | `NEO4J_DATABASE` | `neo4j` | Production, Preview, Development |
    | `NEO4J_MAX_POOL_SIZE` | `8` | Production, Preview, Development |
 
-4. **Deploy.**
+4. Under **Settings → Functions**, set the **region** to whichever Vercel region
+   is geographically closest to your CognoDB instance.
+
+5. **Deploy.**
+
+> **Region is the single biggest performance lever here.**
+> Every query carries a network round trip, and from a laptop in a different
+> region to the instance that floor is around 780 ms — more than the query time
+> itself for most panels. Co-locating the serverless functions with the database
+> collapses it. The package page fires seven queries in parallel, so the saving
+> compounds.
 
 > **Why `NEO4J_MAX_POOL_SIZE=8` rather than the local default of 16.**
 > Each warm serverless instance holds its own connection pool, and Vercel will

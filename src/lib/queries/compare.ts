@@ -35,12 +35,33 @@ export const COMPARE_FOOTPRINTS = defineQuery({
     // you add express to your project, express's own test and lint tooling does
     // not come with it. Counting those would answer a question nobody asked and
     // inflate both sides of the comparison with packages that never touch disk.
-    MATCH (left:Version { key: $leftKey })-[leftHops:DEPENDS_ON*1..8]->(leftDep:Version)
-    WHERE ALL(hop IN leftHops WHERE hop.scope <> 'dev')
+    //
+    // Two portability/performance notes on the shape of this pattern:
+    //
+    // 1. shortestPath, not a bare variable-length match. Writing
+    //    MATCH p = (a)-[:DEPENDS_ON*1..8]->(b) enumerates EVERY route between
+    //    the two nodes, which on a graph with cycles and high fan-out is close
+    //    to exponential. It ran in 4 ms against a local database and then blew
+    //    straight through CognoDB's query deadline. A breadth-first search
+    //    returning one path per reachable node is all this needs: the question
+    //    is which packages are reachable, not how many ways there are to reach
+    //    them.
+    //
+    // 2. The predicate reads its hops from a named *path* rather than binding
+    //    the relationships directly as [hops:DEPENDS_ON*1..8]. Both spellings
+    //    are legal Cypher but they do not bind the same type on every engine —
+    //    Neo4j yields a list of relationships, CognoDB yields a Path, and
+    //    ALL(x IN <path>) is a type error. relationships(path) is a list on both.
+    MATCH leftPath = shortestPath(
+      (left:Version { key: $leftKey })-[:DEPENDS_ON*1..8]->(leftDep:Version)
+    )
+    WHERE ALL(hop IN relationships(leftPath) WHERE hop.scope <> 'dev')
     WITH collect(DISTINCT leftDep.packageName) AS leftPackages
 
-    MATCH (right:Version { key: $rightKey })-[rightHops:DEPENDS_ON*1..8]->(rightDep:Version)
-    WHERE ALL(hop IN rightHops WHERE hop.scope <> 'dev')
+    MATCH rightPath = shortestPath(
+      (right:Version { key: $rightKey })-[:DEPENDS_ON*1..8]->(rightDep:Version)
+    )
+    WHERE ALL(hop IN relationships(rightPath) WHERE hop.scope <> 'dev')
     WITH leftPackages, collect(DISTINCT rightDep.packageName) AS rightPackages
 
     RETURN [name IN leftPackages  WHERE name IN rightPackages]     AS shared,
@@ -152,7 +173,7 @@ export const DEPENDENTS = defineQuery({
     "forwards — relationships are navigable from both ends. The relational " +
     "equivalent needs a second index on the reverse key, and a second recursive " +
     "CTE written in the opposite direction.",
-  traversal: "1–5 hops, reversed",
+  traversal: "1–4 hops, walked backwards from the target",
   parameters: [
     { name: "packageName", description: "Package to look up", example: "ms" },
     { name: "limit", description: "Maximum rows", example: "25" },
@@ -160,14 +181,19 @@ export const DEPENDENTS = defineQuery({
   cypher: cypher`
     MATCH (target:Package { name: $packageName })<-[:VERSION_OF]-(targetVersion:Version)
 
-    // Bind and filter the dependent *before* the shortest-path call: a package
-    // that transitively reaches itself through a cycle would otherwise make
-    // shortestPath throw on identical endpoints.
-    MATCH (dependent:Version)-[:DEPENDS_ON*1..5]->(targetVersion)
+    // The arrow points backwards, and that is the whole optimisation.
+    //
+    // Written the natural way round — shortestPath((dependent)-[:DEPENDS_ON*]->(target))
+    // — dependent is unbound, so the planner runs one breadth-first search per
+    // candidate version in the graph: thousands of searches to answer one
+    // question. Anchoring at the bound end and walking the relationship in
+    // reverse is a single search outward from the target, and relationships in a
+    // graph are equally navigable from either end. Same answer, same semantics,
+    // one traversal instead of thousands.
+    MATCH path = shortestPath((targetVersion)<-[:DEPENDS_ON*1..4]-(dependent:Version))
     WHERE dependent <> targetVersion
 
     MATCH (dependent)-[:VERSION_OF]->(dependentPackage:Package)
-    MATCH path = shortestPath((dependent)-[:DEPENDS_ON*1..5]->(targetVersion))
 
     WITH dependentPackage, min(length(path)) AS distance
     RETURN dependentPackage.name            AS packageName,

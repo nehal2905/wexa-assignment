@@ -434,6 +434,60 @@ For `express@4.17.1` the difference is **13 production paths versus 55 total**.
 
 **Integers are stored as integers.** JavaScript has one number type; Bolt has two. The driver sends every plain number as a `FLOAT`, so a download count of 12,340,000 lands as `1.234e7` — which sorts and compares differently from the integer it should be, and makes `LIMIT $limit` fail outright. Integral fields go through an explicit `int()` helper on the way in ([`db/cypher.ts`](src/lib/db/cypher.ts)).
 
+---
+
+## Targeting the free tier
+
+Everything above was developed against a local Neo4j container and then moved to
+a CognoDB free (c0) instance — 0.5 burstable vCPU, 256 MB RAM, and a server-side
+query deadline of roughly five seconds. Three things broke on the way, and all
+three were mine rather than the database's. They are worth writing down because
+they are the difference between "works on my laptop" and "works on the demo link
+you sent".
+
+**1. Bare variable-length matches enumerate every path, not the shortest.**
+
+```cypher
+MATCH p = (a)-[:DEPENDS_ON*1..8]->(b)     -- every route between a and b
+MATCH p = shortestPath((a)-[:DEPENDS_ON*1..8]->(b))   -- one route per reachable b
+```
+
+On a graph with cycles and high fan-out the first form is close to exponential.
+Locally it returned in 4 ms and looked perfectly healthy; on the free tier it
+exceeded the query deadline outright. Reachability questions — *which packages
+can I get to* — only ever need the second form.
+
+**2. Direction matters enormously when one endpoint is unbound.**
+
+```cypher
+-- one breadth-first search per candidate version in the graph: 6,485 ms
+MATCH p = shortestPath((dependent:Version)-[:DEPENDS_ON*1..4]->(targetVersion))
+
+-- one search outward from the bound node: 789 ms
+MATCH p = shortestPath((targetVersion)<-[:DEPENDS_ON*1..4]-(dependent:Version))
+```
+
+Same semantics, same results, eight times faster. Relationships are equally
+navigable from either end, so anchoring at the bound endpoint and reversing the
+arrow turns thousands of traversals into one.
+
+**3. Not every engine implements every part of openCypher.**
+
+| difference | how it surfaced | what changed |
+|---|---|---|
+| `CREATE TEXT INDEX` unsupported | schema step logged a warning | index creation is non-fatal by design; a plain range index was added as a fallback |
+| `resultAvailableAfter` not reported over Bolt | *every* query failed on metadata, not on the query | timings are optional; the UI says "live graph query" rather than inventing a 0 ms |
+| `[hops:DEPENDS_ON*1..8]` binds a `Path`, not a list | `all() requires list, got *types.Path` | use a named path and `relationships(path)`, which is a list on both engines |
+
+The second of those is the one worth dwelling on: a *timing display* was able to
+fail a *query*. Optional protocol fields should never be treated as guaranteed,
+and the fix — return `-1` and render "not reported" — is smaller than the bug.
+
+The remaining floor is network latency. Every query, including a trivial count,
+takes about 780 ms round trip from a laptop in a different region to the
+instance. **Deploy to a hosting region close to the CognoDB instance** and that
+floor largely disappears; see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ### Verification
 
 There is no unit-test suite; Cypher is not type-checked, so the useful test is running every statement against real data:

@@ -87,47 +87,36 @@ export const LIST_ROOT_PACKAGES = defineQuery({
   title: "List seeded applications with their risk summary",
   question:
     "Which packages can I explore, and how much of a problem does each one have?",
-  whyGraph:
-    "Each card needs the size of a whole transitive closure and a count of advisories " +
-    "reachable anywhere inside it. In SQL that is a recursive CTE per row of the list; " +
-    "here it is one pattern with a variable-length edge.",
-  traversal: "0–8 hops through shipping dependencies only, deduplicated",
+  whyGraph: null, // A property read. The traversal behind these numbers happened at seed time.
+  traversal: "0 hops — reads seed-time rollups, see the note below",
   parameters: [],
   cypher: cypher`
+    // Deliberately not a traversal.
+    //
+    // These counts ARE the result of a transitive closure — one per card — but
+    // computing thirty-one of them on every page load does not fit inside the
+    // CognoDB free tier's query deadline. So the closure is computed once at
+    // seed time by breadth-first search over the crawl result, using exactly the
+    // production-scope rule the live queries use, and stored on the node.
+    //
+    // The index page reads rollups; every detail page it links to runs the real
+    // traversal. That division is the normal shape of this problem, not a
+    // shortcut — and it is stated plainly on the /queries page rather than being
+    // dressed up as something it is not.
     MATCH (p:Package)
     WHERE p.isRoot = true AND p.rootVersion IS NOT NULL
-    MATCH (root:Version { packageName: p.name, version: p.rootVersion })
 
-    // Everything the root can reach, including itself (depth 0).
-    //
-    // The relationship list is bound to a variable so the traversal can be
-    // constrained to edges that actually ship. Without this the cards would
-    // count advisories reachable only through devDependencies — build and test
-    // tooling that never reaches production — and disagree with the package
-    // page, which defaults to the production view. Two different numbers for
-    // the same package is worse than either number alone.
-    OPTIONAL MATCH (root)-[hops:DEPENDS_ON*0..8]->(reachable:Version)
-    WHERE ALL(hop IN hops WHERE hop.scope <> 'dev')
-    WITH p, root, collect(DISTINCT reachable) AS tree
-
-    // Of those, which carry advisories.
-    UNWIND tree AS node
-    OPTIONAL MATCH (node)<-[:AFFECTS]-(vuln:Vulnerability)
-    WITH p, root, tree,
-         collect(DISTINCT vuln) AS advisories
-
-    RETURN p.name                       AS name,
-           p.rootVersion                AS version,
-           p.description                AS description,
-           p.rootBlurb                  AS blurb,
-           p.rootCategory               AS category,
-           p.pinnedBecause              AS pinnedBecause,
-           p.weeklyDownloads            AS weeklyDownloads,
-           p.latestVersion              AS latestVersion,
-           size(tree) - 1               AS dependencyCount,
-           size(advisories)             AS vulnerabilityCount,
-           size([v IN advisories WHERE v.severity IN ['CRITICAL', 'HIGH']])
-                                        AS severeCount
+    RETURN p.name                              AS name,
+           p.rootVersion                       AS version,
+           p.description                       AS description,
+           p.rootBlurb                         AS blurb,
+           p.rootCategory                      AS category,
+           p.pinnedBecause                     AS pinnedBecause,
+           p.weeklyDownloads                   AS weeklyDownloads,
+           p.latestVersion                     AS latestVersion,
+           coalesce(p.prodDependencyCount, 0)    AS dependencyCount,
+           coalesce(p.prodVulnerabilityCount, 0) AS vulnerabilityCount,
+           coalesce(p.prodSevereCount, 0)        AS severeCount
     ORDER BY vulnerabilityCount DESC, coalesce(p.weeklyDownloads, 0) DESC, p.name
   `,
 });

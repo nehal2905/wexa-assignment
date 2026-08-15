@@ -32,6 +32,25 @@ const globalRef = globalThis as unknown as DriverGlobal;
 /** Ceiling on any single query, so one pathological traversal can't pin the instance. */
 const DEFAULT_QUERY_TIMEOUT_MS = 15_000;
 
+/**
+ * Reads a server-reported timing from a result summary.
+ *
+ * `resultAvailableAfter` and `resultConsumedAfter` are optional in the Bolt
+ * protocol, and not every openCypher server populates them — CognoDB does not.
+ * Treating them as guaranteed makes the *timing display* capable of failing the
+ * *query*, which is exactly backwards: an unreported duration is a missing nicety,
+ * not an error. Returns -1 when the server did not say, which the UI renders as
+ * "not reported" rather than as a suspiciously fast 0 ms.
+ */
+function summaryMs(value: unknown): number {
+  if (value === null || value === undefined) return -1;
+  try {
+    return intToNumber(value);
+  } catch {
+    return -1;
+  }
+}
+
 export function getDriver(): Driver {
   const existing = globalRef[DRIVER_KEY];
   if (existing !== undefined) return existing;
@@ -139,8 +158,8 @@ export async function readRows<T>({
     return {
       rows: result.records.map(map),
       meta: {
-        availableAfterMs: intToNumber(result.summary.resultAvailableAfter),
-        consumedAfterMs: intToNumber(result.summary.resultConsumedAfter),
+        availableAfterMs: summaryMs(result.summary.resultAvailableAfter),
+        consumedAfterMs: summaryMs(result.summary.resultConsumedAfter),
         roundTripMs,
         rowCount: result.records.length,
       },

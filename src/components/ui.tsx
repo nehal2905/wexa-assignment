@@ -238,6 +238,7 @@ export function QueryFootnote({
   rowCount,
 }: {
   queryId: string;
+  /** -1 when the server did not report a duration — see `summaryMs` in db/driver.ts. */
   serverMs: number;
   rowCount?: number;
 }) {
@@ -250,7 +251,11 @@ export function QueryFootnote({
         {queryId}
       </a>
       <span aria-hidden>·</span>
-      <span className="tabular">{serverMs} ms in the graph</span>
+      {/* Not every openCypher server reports query timing over Bolt. Saying so is
+          better than printing a made-up 0 ms. */}
+      <span className="tabular">
+        {serverMs < 0 ? "live graph query" : `${serverMs} ms in the graph`}
+      </span>
       {rowCount !== undefined && (
         <>
           <span aria-hidden>·</span>
