@@ -147,7 +147,7 @@ function parseEnv(): Env {
   if (!VALID_SCHEMES.some((scheme) => safeUri.startsWith(scheme))) {
     throw new ConfigurationError(
       `NEO4J_URI has an unsupported scheme: "${safeUri}". Expected one of ${VALID_SCHEMES.join(", ")}. ` +
-        `CognoDB Cloud instances use bolt+s://<instance-id>.databases.cognodb.cloud`,
+        `CognoDB Cloud instances use bolt+s://<instance-id>.databases.cognodb.com`,
       ["NEO4J_URI"],
     );
   }

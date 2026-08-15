@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { compactNumber } from "@/lib/format";
+import { compactNumber, packageHref } from "@/lib/format";
 import type { PackageSearchHit } from "@/lib/queries/discovery";
 
 /**
@@ -100,9 +100,7 @@ export function PackageSearch({
       onPick(hit);
       return;
     }
-    const version = hit.rootVersion ?? hit.latestVersion;
-    const query = version === null ? "" : `?version=${encodeURIComponent(version)}`;
-    router.push(`/package/${encodeURIComponent(hit.name)}${query}`);
+    router.push(packageHref(hit.name, hit.rootVersion ?? hit.latestVersion));
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {

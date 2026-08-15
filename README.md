@@ -284,7 +284,7 @@ The force-directed graph is rendered to a canvas with `d3-force` for layout ([`d
 1. Sign up at **<https://console.cognodb.com/signup>**.
 2. Create a **free (c0)** instance and pick a region. It provisions in under a minute.
 3. Copy the connection details when they appear:
-   - URI of the form `bolt+s://<instance-id>.databases.cognodb.cloud`
+   - URI of the form `bolt+s://<instance-id>.databases.cognodb.com`
    - username `cognodb`
    - **the generated password — shown exactly once.** Copy it immediately; if you lose it, rotate it from the console.
 
@@ -300,7 +300,7 @@ cp .env.example .env.local
 Edit `.env.local`:
 
 ```dotenv
-NEO4J_URI=bolt+s://<instance-id>.databases.cognodb.cloud
+NEO4J_URI=bolt+s://<instance-id>.databases.cognodb.com
 NEO4J_USERNAME=cognodb
 NEO4J_PASSWORD=<your password>
 NEO4J_DATABASE=neo4j
@@ -316,7 +316,7 @@ npm run db:check
 
 ```
 Understory · connection check
-  host       xxxxx.databases.cognodb.cloud
+  host       xxxxx.databases.cognodb.com
   database   neo4j
   encrypted  yes
 

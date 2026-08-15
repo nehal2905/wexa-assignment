@@ -14,7 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { SEVERITY_HEX, worstSeverity } from "@/lib/format";
+import { SEVERITY_HEX, packageHref, worstSeverity } from "@/lib/format";
 import type { Severity } from "@/lib/graph/model";
 import type { GraphEdge, GraphNode } from "@/lib/queries/tree";
 
@@ -458,9 +458,7 @@ export function DependencyCanvas({
             if (dragState.current?.moved === true) return;
             const node = nodeAt(event.clientX, event.clientY);
             if (node === null || node.key === rootKey) return;
-            router.push(
-              `/package/${encodeURIComponent(node.packageName)}?version=${encodeURIComponent(node.version)}`,
-            );
+            router.push(packageHref(node.packageName, node.version));
           }}
           onWheel={(event) => {
             const point = toGraphSpace(event.clientX, event.clientY);

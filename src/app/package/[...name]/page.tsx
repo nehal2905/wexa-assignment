@@ -14,7 +14,7 @@ import {
 } from "@/components/panels";
 import { Badge, Panel, PanelSkeleton, QueryFootnote, Stat, cx } from "@/components/ui";
 import { AppError, toAppError } from "@/lib/db/errors";
-import { compactNumber, exactNumber, fileSize, monthYear, yearsAgo } from "@/lib/format";
+import { compactNumber, exactNumber, fileSize, monthYear, packageHref, yearsAgo } from "@/lib/format";
 import { versionKey } from "@/lib/graph/model";
 import { getPackageVersions } from "@/lib/queries/discovery";
 import { getUpgradeChokepoints, getVulnerabilityPaths, type ReachabilityScope } from "@/lib/queries/risk";
@@ -47,9 +47,24 @@ import { getDependencyGraph, getPackageOverview, type GraphDepth } from "@/lib/q
  */
 export const dynamic = "force-dynamic";
 
+/**
+ * A catch-all segment, not a single one.
+ *
+ * Scoped package names contain a slash — `@babel/core` — and a slash is a path
+ * separator, not a character that survives a single dynamic segment.
+ * Percent-encoding it as `%2F` does not help: servers and proxies routinely
+ * reject or normalise an encoded slash before the framework ever sees it. A
+ * catch-all captures `["@babel", "core"]` and rejoining gives the real name,
+ * which keeps the URL readable as `/package/@babel/core`.
+ */
 interface PageProps {
-  params: Promise<{ name: string }>;
+  params: Promise<{ name: string[] }>;
   searchParams: Promise<{ version?: string; scope?: string; depth?: string }>;
+}
+
+/** Rejoins a catch-all segment into the package name it represents. */
+function packageNameFrom(segments: string[]): string {
+  return segments.map((segment) => decodeURIComponent(segment)).join("/");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -68,7 +83,7 @@ function parseDepth(raw: string | undefined): GraphDepth {
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { name } = await params;
   const { version } = await searchParams;
-  const decoded = decodeURIComponent(name);
+  const decoded = packageNameFrom(name);
   return {
     title: version === undefined ? decoded : `${decoded}@${version}`,
     description: `Dependency graph, reachable advisories and maintainer exposure for ${decoded}.`,
@@ -76,10 +91,10 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 }
 
 export default async function PackagePage({ params, searchParams }: PageProps) {
-  const { name: rawName } = await params;
+  const { name: segments } = await params;
   const query = await searchParams;
 
-  const name = decodeURIComponent(rawName);
+  const name = packageNameFrom(segments);
   const scope = parseScope(query.scope);
   const depth = parseDepth(query.depth);
 
@@ -184,9 +199,10 @@ interface CurrentView {
 function hrefWith(current: CurrentView, patch: Partial<CurrentView>): string {
   const next = { ...current, ...patch };
   const search = new URLSearchParams({ version: next.version });
+  // Only non-default values go in the URL, so the common case stays clean.
   if (next.scope !== "production") search.set("scope", next.scope);
   if (next.depth !== 3) search.set("depth", String(next.depth));
-  return `/package/${encodeURIComponent(next.name)}?${search.toString()}`;
+  return `${packageHref(next.name)}?${search.toString()}`;
 }
 
 async function PackageHeader({

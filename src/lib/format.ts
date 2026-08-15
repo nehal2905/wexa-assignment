@@ -157,8 +157,23 @@ export function isDevOnlyPath(scopes: readonly string[]): boolean {
 /* Version keys                                                                */
 /* -------------------------------------------------------------------------- */
 
-/** `express@4.17.1` → URL-safe path segment, preserving scoped names. */
+/**
+ * Builds the URL for a package page.
+ *
+ * Scoped names (`@babel/core`) contain a slash, which is a path *separator* and
+ * cannot be smuggled through a single dynamic segment: percent-encoding it as
+ * `%2F` is rejected or silently normalised by most servers and proxies. So the
+ * route is a catch-all (`/package/[...name]`) and the name is split on `/` with
+ * each segment encoded independently — producing `/package/@babel/core`, which
+ * is both valid and readable.
+ *
+ * This matters more than it sounds: scoped packages are a large fraction of any
+ * real dependency tree.
+ */
 export function packageHref(name: string, version?: string | null): string {
-  const base = `/package/${encodeURIComponent(name)}`;
-  return version === null || version === undefined ? base : `${base}?version=${encodeURIComponent(version)}`;
+  const path = name.split("/").map(encodeURIComponent).join("/");
+  const base = `/package/${path}`;
+  return version === null || version === undefined
+    ? base
+    : `${base}?version=${encodeURIComponent(version)}`;
 }
