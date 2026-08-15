@@ -126,6 +126,23 @@ export const ROOT_PACKAGES: readonly RootPackage[] = [
   { name: "eslint", category: "Utilities", blurb: "Pluggable JavaScript linter." },
   { name: "nodemailer", category: "Utilities", blurb: "Email sending for Node.js." },
   { name: "sharp", category: "Utilities", blurb: "High-performance image processing." },
+
+  /* --- Coverage roots ----------------------------------------------------- */
+  //
+  // These were added after testing what people actually type into the search
+  // box. The graph is a crawled slice rather than the whole registry, so a
+  // reasonable first guess landing on "not in this graph" is a bad first
+  // impression even though the page explains itself. Each of these is a package
+  // someone evaluating the tool is likely to reach for, and adding them as roots
+  // pulls their whole dependency tree in with them.
+  { name: "next", category: "Web frameworks", blurb: "React framework for production apps." },
+  { name: "react-router", category: "Frontend", blurb: "Declarative routing for React." },
+  { name: "tailwindcss", category: "Build tooling", blurb: "Utility-first CSS framework." },
+  { name: "zod", category: "Utilities", blurb: "TypeScript-first schema validation." },
+  { name: "bcrypt", category: "Auth & security", blurb: "Password hashing." },
+  { name: "dayjs", category: "Utilities", blurb: "Lightweight date library." },
+  { name: "winston", category: "Utilities", blurb: "Logging for Node.js." },
+  { name: "graphql", category: "Utilities", blurb: "Reference GraphQL implementation." },
 ];
 
 export const ROOT_CATEGORIES: readonly RootCategory[] = [
