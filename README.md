@@ -9,7 +9,7 @@ Built on [CognoDB](https://console.cognodb.com), openCypher over Bolt, driven by
 | | |
 |---|---|
 | **Live demo** | **https://wexa-assignment-akulanehal0905-4320s-projects.vercel.app** |
-| **Screen recording** | _(recording link)_ |
+| **Screen recording** | **https://www.loom.com/share/3c676798e4d64778943ac6a5b328e215** (3 min) |
 | **Stack** | Next.js 15 (App Router), TypeScript, Tailwind CSS 4, neo4j-driver 5, CognoDB |
 | **Data** | npm registry (dependency graph) + [OSV.dev](https://osv.dev) (advisories) |
 | **Graph size** | 1,811 packages, 3,025 resolved versions, 6,257 nodes, 20,970 relationships |
